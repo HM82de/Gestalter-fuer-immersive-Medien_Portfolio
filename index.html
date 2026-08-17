@@ -25,7 +25,7 @@
   <!-- minimal loader shown until image descriptors are loaded. Loading may take a while according to the device computational power -->
   <div class="arjs-loader">
     <div>
-      Willkommen zu meinem Portfolio!<br> 
+      Willkommen zu meinem Portfolio!<br>
       Content wird geladen.<br>
       version 1.8
     </div>
@@ -38,8 +38,6 @@
     arjs="trackingMethod: best; sourceType: webcam;debugUIEnabled: true;"
   >
     <!-- a-nft is the anchor that defines an Image Tracking entity -->
-    <!-- on 'url' use the path to the Image Descriptors created before. -->
-    <!-- the path should end with the name without the extension e.g. if file is 'pinball.fset' the path should end with 'pinball' -->
     <a-nft
       type="nft"
       url="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/imageMarker_2"
@@ -48,16 +46,24 @@
       smoothTolerance=".01"
       smoothThreshold="5"
     >
-      <!-- as a child of the a-nft entity, you can define the content to show. here's a GLTF model entity -->
+      <!-- Test-Box zum Prüfen, ob Tracking funktioniert -->
+      <a-box 
+        color="red" 
+        scale="80 80 80" 
+        position="0 0 0"
+      ></a-box>
+
+      <!-- Phone-Modell vorerst auskommentiert – später wieder aktivieren -->
+      <!--
       <a-entity
         gltf-model="assets/Phone.glb"
         scale="0.1 0.1 0.1"
         position="0 50 0"
-        
-      >
-      </a-entity>
+      ></a-entity>
+      -->
     </a-nft>
-    <!-- static camera that moves according to the device movemenents -->
+
+    <!-- static camera that moves according to the device movements -->
     <a-entity camera></a-entity>
   </a-scene>
 
