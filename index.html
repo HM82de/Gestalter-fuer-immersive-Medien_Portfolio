@@ -8,28 +8,56 @@
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-    <style>
-      html, body {
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: #111;
-      }
-      #status {
-        position: fixed;
-        top: 12px;
-        left: 12px;
-        color: white;
-        background: rgba(0,0,0,0.75);
-        padding: 10px 14px;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        font-size: 15px;
-        z-index: 9999;
-        border-radius: 8px;
-        max-width: 80%;
-      }
-    </style>
+<style>
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+
+  /* Status-Anzeige */
+  #status {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    color: white;
+    background: rgba(0,0,0,0.75);
+    padding: 10px 14px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 15px;
+    z-index: 9999;
+    border-radius: 8px;
+  }
+
+  /* === WICHTIG: Kamera-Video sichtbar machen === */
+  video {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    z-index: 1 !important;
+  }
+
+  /* a-scene Canvas darüber legen */
+  a-scene {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 2 !important;
+  }
+
+  /* Canvas transparent machen, damit das Video durchscheint */
+  .a-canvas {
+    background: transparent !important;
+  }
+</style>
   </head>
   <body>
 
@@ -84,5 +112,20 @@
         statusEl.style.background = 'darkred';
       });
     </script>
+    <script>
+  // Warte kurz und erzwinge die Video-Sichtbarkeit
+  setTimeout(() => {
+    const video = document.querySelector('video');
+    if (video) {
+      video.style.display = 'block';
+      video.style.opacity = '1';
+      video.style.zIndex = '1';
+      console.log('Video-Element gefunden und sichtbar gemacht');
+    } else {
+      console.warn('Kein Video-Element gefunden');
+    }
+  }, 1500);
+</script>
+    
   </body>
 </html>
