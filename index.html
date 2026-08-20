@@ -17,6 +17,7 @@
         background: #000;
       }
 
+      /* Status-Anzeige oben zentriert */
       #status {
         position: fixed;
         top: 18px;
@@ -37,6 +38,7 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
 
+      /* Kamera-Video */
       video {
         display: block !important;
         position: absolute !important;
@@ -62,6 +64,7 @@
         background: transparent !important;
       }
 
+      /* ===== Custom Scanning Overlay ===== */
       #scanning-overlay {
         position: fixed;
         top: 0;
@@ -86,24 +89,23 @@
       .scan-frame {
         width: 56vw;
         max-width: 250px;
-        aspect-ratio: 1 / 1.55;
+        aspect-ratio: 1 / 1.55; /* Hochformat */
         border: 3px solid rgba(255, 255, 255, 0.9);
         border-radius: 14px;
         position: relative;
         overflow: hidden;
         box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
       }
 
-      /* Vorschaubild um weitere 180° gedreht (insgesamt 270°) */
+      /* Bild um 90° + weitere 180° = 270° drehen, Rahmen ausfüllen */
       .scan-frame img {
         position: absolute;
+        top: 50%;
+        left: 50%;
         width: 155%;
         height: auto;
         opacity: 0.42;
-        transform: rotate(270deg) scale(1.02);
+        transform: translate(-50%, -50%) rotate(270deg) scale(1.05);
         transform-origin: center center;
       }
 
@@ -148,7 +150,7 @@
              alt="Visitenkarte">
       </div>
       <div class="scan-text">
-        Kamera auf die Visitenkarte richten v.10
+        Kamera auf die Visitenkarte richten
       </div>
     </div>
 
@@ -177,28 +179,28 @@
           scale="0.35 0.35 0.35">
         </a-box>
 
-        <!-- Phone -->
+        <!-- Phone – flach, untere Kante -->
         <a-gltf-model 
           src="#phoneModel"
-          position="-0.32 -0.40 0.02"
+          position="-0.35 -0.48 0.02"
           scale="0.1125 0.1125 0.1125"
           rotation="-90 0 0">
         </a-gltf-model>
 
-        <!-- Mail -->
+        <!-- Mail – flach, gleiche Ausrichtung wie Phone -->
         <a-gltf-model 
           src="#mailModel"
-          position="0.0 -0.40 0.02"
+          position="0 -0.48 0.02"
           scale="0.1125 0.1125 0.1125"
-          rotation="-90 0 90">
+          rotation="-90 0 0">
         </a-gltf-model>
 
-        <!-- LinkedIn -->
+        <!-- LinkedIn – flach, gleiche Ausrichtung wie Phone -->
         <a-gltf-model 
           src="#linkedinModel"
-          position="0.32 -0.40 0.02"
+          position="0.35 -0.48 0.02"
           scale="0.1125 0.1125 0.1125"
-          rotation="-90 0 90">
+          rotation="-90 0 0">
         </a-gltf-model>
 
       </a-entity>
