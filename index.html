@@ -92,6 +92,86 @@
           scale="0.35 0.35 0.35">
         </a-box>
 
+        <!-- Phone-Modell (flach auf dem Bild liegend) -->
+        <a-gltf-model 
+          src="#phoneModel"
+          position="0.4 0 0.02"
+          scale="0.45 0.45 0.45"
+          rotation="-90 0 0">
+        </a-gltf-model>
+
+      </a-entity>
+    </a-scene>
+
+    <script>
+      const statusEl = document.getElementById('status');
+      const sceneEl = document.querySelector('a-scene');
+
+      // Status-Updates
+      sceneEl.addEventListener('loaded', () => {
+        statusEl.textContent = 'AR-Visitenkarte geladen – Kamera auf Visitenkarte richten';
+      });
+
+      // Target gefunden / verloren
+      const target = document.querySelector('[mindar-image-target]');
+      if (target) {
+        target.addEventListener('targetFound', () => {
+          statusEl.textContent = '✓ Visitenkarte von Heiman Mustafa erkannt';
+          statusEl.style.background = 'rgba(0,140,0,0.85)';
+        });
+        target.addEventListener('targetLost', () => {
+          statusEl.textContent = 'Kamera auf Visitenkarte richten';
+          statusEl.style.background = 'rgba(0,0,0,0.75)';
+        });
+      }
+
+      // Fehler abfangen
+      window.addEventListener('error', (e) => {
+        statusEl.textContent = 'Fehler: ' + (e.message || 'Unbekannt');
+        statusEl.style.background = 'darkred';
+      });
+
+      // Video-Element nachträglich sichtbar machen (Fallback)
+      setTimeout(() => {
+        const video = document.querySelector('video');
+        if (video) {
+          video.style.display = 'block';
+          video.style.opacity = '1';
+          video.style.zIndex = '1';
+        }
+      }, 1500);
+    </script>
+  </body>
+</html>    </style>
+  </head>
+
+  <body>
+    <div id="status">Starte AR-Visitenkarte...</div>
+
+    <a-scene
+      mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets.mind; autoStart: true;"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+      embedded
+    >
+      <!-- Assets -->
+      <a-assets>
+        <a-asset-item id="phoneModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Phone.glb"></a-asset-item>
+      </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <a-entity mindar-image-target="targetIndex: 0">
+        
+        <!-- Rote Test-Box (links) -->
+        <a-box 
+          color="#ff2222" 
+          position="-0.35 0 0" 
+          scale="0.35 0.35 0.35">
+        </a-box>
+
         <!-- Phone-Modell (rechts neben der Box) -->
         <a-gltf-model 
           src="#phoneModel"
