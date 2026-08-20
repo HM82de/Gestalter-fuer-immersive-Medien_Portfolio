@@ -17,7 +17,6 @@
         background: #000;
       }
 
-      /* Status-Anzeige oben zentriert */
       #status {
         position: fixed;
         top: 18px;
@@ -38,7 +37,6 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
 
-      /* Kamera-Video */
       video {
         display: block !important;
         position: absolute !important;
@@ -64,7 +62,6 @@
         background: transparent !important;
       }
 
-      /* ===== Custom Scanning Overlay ===== */
       #scanning-overlay {
         position: fixed;
         top: 0;
@@ -89,7 +86,7 @@
       .scan-frame {
         width: 56vw;
         max-width: 250px;
-        aspect-ratio: 1 / 1.55; /* Hochformat */
+        aspect-ratio: 1 / 1.55;
         border: 3px solid rgba(255, 255, 255, 0.9);
         border-radius: 14px;
         position: relative;
@@ -97,7 +94,6 @@
         box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
       }
 
-      /* Bild um 90° + weitere 180° = 270° drehen, Rahmen ausfüllen */
       .scan-frame img {
         position: absolute;
         top: 50%;
@@ -179,28 +175,28 @@
           scale="0.35 0.35 0.35">
         </a-box>
 
-        <!-- Phone – flach, untere Kante -->
+        <!-- Phone – flach, weiter nach unten -->
         <a-gltf-model 
           src="#phoneModel"
-          position="-0.35 -0.48 0.02"
+          position="-0.35 -0.58 0.02"
           scale="0.1125 0.1125 0.1125"
           rotation="-90 0 0">
         </a-gltf-model>
 
-        <!-- Mail – flach, gleiche Ausrichtung wie Phone -->
+        <!-- Mail – flach + 90° nach rechts (Z-Achse) -->
         <a-gltf-model 
           src="#mailModel"
-          position="0 -0.48 0.02"
+          position="0 -0.58 0.02"
           scale="0.1125 0.1125 0.1125"
-          rotation="-90 0 0">
+          rotation="-90 0 90">
         </a-gltf-model>
 
-        <!-- LinkedIn – flach, gleiche Ausrichtung wie Phone -->
+        <!-- LinkedIn – flach + 90° nach rechts (Z-Achse) -->
         <a-gltf-model 
           src="#linkedinModel"
-          position="0.35 -0.48 0.02"
+          position="0.35 -0.58 0.02"
           scale="0.1125 0.1125 0.1125"
-          rotation="-90 0 0">
+          rotation="-90 0 90">
         </a-gltf-model>
 
       </a-entity>
@@ -246,7 +242,7 @@
           });
 
           target.addEventListener('targetLost', () => {
-            setStatus('Kamera auf Visitenkarte richten v1.01');
+            setStatus('Kamera auf Visitenkarte richten');
             showScanning();
           });
         }
