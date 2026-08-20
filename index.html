@@ -85,6 +85,196 @@
       }
 
       .scan-frame {
+        width: 72vw;
+        max-width: 340px;
+        aspect-ratio: 1.55 / 1;
+        border: 3px solid rgba(255, 255, 255, 0.9);
+        border-radius: 14px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+      }
+
+      /* Tracking-Bild mit niedriger Opazität */
+      .scan-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.38;
+      }
+
+      .scan-text {
+        margin-top: 22px;
+        color: white;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 16px;
+        font-weight: 500;
+        text-align: center;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+        padding: 0 20px;
+      }
+
+      /* Animierte Scan-Linie */
+      .scan-frame::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #00ff88, transparent);
+        animation: scanline 2.2s ease-in-out infinite;
+      }
+
+      @keyframes scanline {
+        0% { top: 0; opacity: 0; }
+        15% { opacity: 1; }
+        85% { opacity: 1; }
+        100% { top: 100%; opacity: 0; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="status">Starte AR-Visitenkarte...</div>
+
+    <!-- Custom Scanning UI mit dem echten Tracking-Bild -->
+    <div id="scanning-overlay">
+      <div class="scan-frame">
+        <img src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/imageMarker_4.jpg" 
+             alt="Visitenkarte">
+      </div>
+      <div class="scan-text">
+        Kamera auf die Visitenkarte richten
+      </div>
+    </div>
+
+    <a-scene
+      mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets.mind; autoStart: true; uiScanning: #scanning-overlay; uiLoading: no;"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+      embedded
+    >
+      <a-assets>
+        <a-asset-item id="phoneModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Phone.glb"></a-asset-item>
+        <a-asset-item id="mailModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Mail.glb"></a-asset-item>
+        <a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
+      </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <a-entity mindar-image-target="targetIndex: 0">
+        
+        <!-- Roter Würfel im Zentrum -->
+        <a-box 
+          color="#ff2222" 
+          position="0 0 0" 
+          scale="0.35 0.35 0.35">
+        </a-box>
+
+        <!-- Phone -->
+        <a-gltf-model 
+          src="#phoneModel"
+          position="-0.32 -0.40 0.02"
+          scale="0.1125 0.1125 0.1125"
+          rotation="-90 0 0">
+        </a-gltf-model>
+
+        <!-- Mail -->
+        <a-gltf-model 
+          src="#mailModel"
+          position="0.0 -0.40 0.02"
+          scale="0.1125 0.1125 0.1125"
+          rotation="-90 0 0">
+        </a-gltf-model>
+
+        <!-- LinkedIn -->
+        <a-gltf-model 
+          src="#linkedinModel"
+          position="0.32 -0.40 0.02"
+          scale="0.1125 0.1125 0.1125"
+          rotation="-90 0 0">
+        </a-gltf-model>
+
+      </a-entity>
+    </a-scene>
+
+    <script>
+      if (window.__arVisitenkarteInitialized) {
+        console.log("AR-Visitenkarte bereits initialisiert – überspringe");
+      } else {
+        window.__arVisitenkarteInitialized = true;
+
+        const statusEl = document.getElementById('status');
+        const scanningOverlay = document.getElementById('scanning-overlay');
+
+        function setStatus(text, isSuccess = false) {
+          if (!statusEl) return;
+          statusEl.textContent = text;
+          statusEl.style.background = isSuccess 
+            ? 'rgba(0, 140, 0, 0.88)' 
+            : 'rgba(0, 0, 0, 0.78)';
+        }
+
+        const sceneEl = document.querySelector('a-scene');
+
+        sceneEl.addEventListener('loaded', () => {
+          setStatus('Kamera auf Visitenkarte richten');
+        });
+
+        const target = document.querySelector('[mindar-image-target]');
+        if (target) {
+          target.addEventListener('targetFound', () => {
+            setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
+            if (scanningOverlay) scanningOverlay.classList.add('hidden');
+          });
+
+          target.addEventListener('targetLost', () => {
+            setStatus('Kamera auf Visitenkarte richten');
+            if (scanningOverlay) scanningOverlay.classList.remove('hidden');
+          });
+        }
+
+        window.addEventListener('error', (e) => {
+          setStatus('Fehler: ' + (e.message || 'Unbekannt'));
+          statusEl.style.background = 'darkred';
+        });
+
+        setTimeout(() => {
+          const video = document.querySelector('video');
+          if (video) {
+            video.style.display = 'block';
+            video.style.opacity = '1';
+            video.style.zIndex = '1';
+          }
+        }, 1200);
+      }
+    </script>
+  </body>
+</html>
+      /* ===== Custom Scanning Overlay ===== */
+      #scanning-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.55);
+        z-index: 20;
+        pointer-events: none;
+      }
+
+      #scanning-overlay.hidden {
+        display: none;
+      }
+
+      .scan-frame {
         width: 70vw;
         max-width: 320px;
         aspect-ratio: 1.55 / 1;
