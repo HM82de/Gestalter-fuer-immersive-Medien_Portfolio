@@ -86,25 +86,26 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
-        <!-- Rote Test-Box -->
+        
+        <!-- Roter Würfel im Zentrum -->
         <a-box 
           color="#ff2222" 
-          position="-0.35 0 0" 
+          position="0 0 0" 
           scale="0.35 0.35 0.35">
         </a-box>
 
-        <!-- Phone-Modell flach liegend -->
+        <!-- Phone-Modell: 50% kleiner + unten links -->
         <a-gltf-model 
           src="#phoneModel"
-          position="0.4 0 0.02"
-          scale="0.45 0.45 0.45"
+          position="-0.42 -0.38 0.02"
+          scale="0.225 0.225 0.225"
           rotation="-90 0 0">
         </a-gltf-model>
+
       </a-entity>
     </a-scene>
 
     <script>
-      // Verhindert doppelte Ausführung
       if (window.__arVisitenkarteInitialized) {
         console.log("AR-Visitenkarte bereits initialisiert – überspringe");
       } else {
@@ -142,7 +143,6 @@
           statusEl.style.background = 'darkred';
         });
 
-        // Video sichtbar machen
         setTimeout(() => {
           const video = document.querySelector('video');
           if (video) {
