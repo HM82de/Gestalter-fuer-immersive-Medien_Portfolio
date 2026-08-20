@@ -97,11 +97,11 @@
       const target = document.querySelector('[mindar-image-target]');
       if (target) {
         target.addEventListener('targetFound', () => {
-          statusEl.textContent = '✓ Target gefunden!';
+          statusEl.textContent = '✓ Visitenkarte von Heiman Mustafa erkannt';
           statusEl.style.background = 'rgba(0,140,0,0.85)';
         });
-        target.addEventListener('targetLost', () => {
-          statusEl.textContent = 'Target verloren';
+        target.addEventListener('Visitenkarte aus der Sicht', () => {
+          statusEl.textContent = 'Kamera auf Visitenkarte richten';
           statusEl.style.background = 'rgba(0,0,0,0.75)';
         });
       }
