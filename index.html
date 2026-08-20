@@ -175,28 +175,28 @@
           scale="0.35 0.35 0.35">
         </a-box>
 
-        <!-- Phone – flach, weiter nach unten -->
+        <!-- Phone – flach, weiter unten -->
         <a-gltf-model 
           src="#phoneModel"
-          position="-0.35 -0.58 0.02"
+          position="-0.35 -0.62 0.02"
           scale="0.1125 0.1125 0.1125"
           rotation="-90 0 0">
         </a-gltf-model>
 
-        <!-- Mail – flach + 90° nach rechts (Z-Achse) -->
+        <!-- Mail – flach + 180° in der Ebene -->
         <a-gltf-model 
           src="#mailModel"
-          position="0 -0.58 0.02"
+          position="0 -0.62 0.02"
           scale="0.1125 0.1125 0.1125"
-          rotation="-90 0 90">
+          rotation="-90 180 0">
         </a-gltf-model>
 
-        <!-- LinkedIn – flach + 90° nach rechts (Z-Achse) -->
+        <!-- LinkedIn – flach + 180° in der Ebene -->
         <a-gltf-model 
           src="#linkedinModel"
-          position="0.35 -0.58 0.02"
+          position="0.35 -0.62 0.02"
           scale="0.1125 0.1125 0.1125"
-          rotation="-90 0 90">
+          rotation="-90 180 0">
         </a-gltf-model>
 
       </a-entity>
@@ -242,7 +242,7 @@
           });
 
           target.addEventListener('targetLost', () => {
-            setStatus('Kamera auf Visitenkarte richten');
+            setStatus('Kamera auf Visitenkarte richten v1.03');
             showScanning();
           });
         }
