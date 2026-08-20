@@ -17,7 +17,6 @@
         background: #000;
       }
 
-      /* Status-Anzeige oben zentriert */
       #status {
         position: fixed;
         top: 18px;
@@ -38,7 +37,6 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
 
-      /* Kamera-Video */
       video {
         display: block !important;
         position: absolute !important;
@@ -64,7 +62,6 @@
         background: transparent !important;
       }
 
-      /* ===== Custom Scanning Overlay ===== */
       #scanning-overlay {
         position: fixed;
         top: 0;
@@ -89,7 +86,7 @@
       .scan-frame {
         width: 56vw;
         max-width: 250px;
-        aspect-ratio: 1 / 1.55;          /* Hochformat-Rahmen */
+        aspect-ratio: 1 / 1.55;
         border: 3px solid rgba(255, 255, 255, 0.9);
         border-radius: 14px;
         position: relative;
@@ -100,10 +97,9 @@
         align-items: center;
       }
 
-      /* Bild um 90° drehen und den Rahmen komplett ausfüllen */
       .scan-frame img {
         position: absolute;
-        width: 155%;                     /* größer als der Rahmen */
+        width: 155%;
         height: auto;
         opacity: 0.42;
         transform: rotate(90deg) scale(1.02);
@@ -121,7 +117,6 @@
         padding: 0 20px;
       }
 
-      /* Animierte Scan-Linie */
       .scan-frame::after {
         content: "";
         position: absolute;
@@ -146,7 +141,6 @@
   <body>
     <div id="status">Starte AR-Visitenkarte...</div>
 
-    <!-- Custom Scanning UI -->
     <div id="scanning-overlay">
       <div class="scan-frame">
         <img src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/imageMarker_4.jpg" 
@@ -182,7 +176,7 @@
           scale="0.35 0.35 0.35">
         </a-box>
 
-        <!-- Phone -->
+        <!-- Phone (flach) -->
         <a-gltf-model 
           src="#phoneModel"
           position="-0.32 -0.40 0.02"
@@ -190,20 +184,20 @@
           rotation="-90 0 0">
         </a-gltf-model>
 
-        <!-- Mail – 90° im Uhrzeigersinn -->
+        <!-- Mail (flach + 180° gedreht) -->
         <a-gltf-model 
           src="#mailModel"
           position="0.0 -0.40 0.02"
           scale="0.1125 0.1125 0.1125"
-          rotation="-90 -90 0">
+          rotation="-90 180 0">
         </a-gltf-model>
 
-        <!-- LinkedIn – 90° im Uhrzeigersinn -->
+        <!-- LinkedIn (flach + 180° gedreht) -->
         <a-gltf-model 
           src="#linkedinModel"
           position="0.32 -0.40 0.02"
           scale="0.1125 0.1125 0.1125"
-          rotation="-90 -90 0">
+          rotation="-90 180 0">
         </a-gltf-model>
 
       </a-entity>
