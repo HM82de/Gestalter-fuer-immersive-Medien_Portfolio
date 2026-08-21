@@ -142,7 +142,7 @@
 
     <div id="scanning-overlay">
       <div class="scan-frame">
-        <img src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/imageMarker_4.jpg" 
+        <img src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/imageMarker_4.jpg"
              alt="Visitenkarte">
       </div>
       <div class="scan-text">
@@ -167,37 +167,39 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
-        
+
         <!-- Roter Würfel im Zentrum -->
-        <a-box 
-          color="#ff2222" 
-          position="0 0 0" 
+        <a-box
+          color="#ff2222"
+          position="0 0 0"
           scale="0.35 0.35 0.35">
         </a-box>
 
-        <!-- Phone – flach, weiter unten -->
-        <a-gltf-model 
+        <!-- Phone – flach -->
+        <a-gltf-model
           src="#phoneModel"
           position="-0.35 -0.62 0.02"
           scale="0.1125 0.1125 0.1125"
           rotation="-90 0 0">
         </a-gltf-model>
 
-        <!-- Mail – flach + 180° in der Ebene -->
-        <a-gltf-model 
-          src="#mailModel"
-          position="0 -0.62 0.02"
-          scale="0.1125 0.1125 0.1125"
-          rotation="-90 180 0">
-        </a-gltf-model>
+        <!-- Mail – flach + 90° nach links (über Parent) -->
+        <a-entity position="0 -0.62 0.02" rotation="0 0 -90">
+          <a-gltf-model
+            src="#mailModel"
+            scale="0.1125 0.1125 0.1125"
+            rotation="-90 0 0">
+          </a-gltf-model>
+        </a-entity>
 
-        <!-- LinkedIn – flach + 180° in der Ebene -->
-        <a-gltf-model 
-          src="#linkedinModel"
-          position="0.35 -0.62 0.02"
-          scale="0.1125 0.1125 0.1125"
-          rotation="-90 180 0">
-        </a-gltf-model>
+        <!-- LinkedIn – flach + 90° nach links (über Parent) -->
+        <a-entity position="0.35 -0.62 0.02" rotation="0 0 -90">
+          <a-gltf-model
+            src="#linkedinModel"
+            scale="0.1125 0.1125 0.1125"
+            rotation="-90 0 0">
+          </a-gltf-model>
+        </a-entity>
 
       </a-entity>
     </a-scene>
@@ -214,8 +216,8 @@
         function setStatus(text, isSuccess = false) {
           if (!statusEl) return;
           statusEl.textContent = text;
-          statusEl.style.background = isSuccess 
-            ? 'rgba(0, 140, 0, 0.88)' 
+          statusEl.style.background = isSuccess
+            ? 'rgba(0, 140, 0, 0.88)'
             : 'rgba(0, 0, 0, 0.78)';
         }
 
@@ -242,7 +244,7 @@
           });
 
           target.addEventListener('targetLost', () => {
-            setStatus('Kamera auf Visitenkarte richten v1.03');
+            setStatus('Kamera auf Visitenkarte richten');
             showScanning();
           });
         }
