@@ -166,13 +166,13 @@
         <a-asset-item id="youtubeModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Youtube.glb"></a-asset-item>
 
         <!-- Video-Element: muted + playsinline sind Pflicht, sonst blockiert
-             iOS Safari das automatische Abspielen komplett. loop sorgt fuer
-             die Dauerschleife. crossorigin wird benoetigt, damit die Video-
-             textur in WebGL genutzt werden darf. -->
+             iOS Safari das Abspielen komplett. loop sorgt fuer die
+             Dauerschleife. crossorigin wird benoetigt, damit die Video-
+             textur in WebGL genutzt werden darf. Kein autoplay mehr -
+             das Video startet erst per Tap auf den YouTube-Button. -->
         <video
           id="dispenserVideo"
           src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_dispenser_v001.mp4"
-          autoplay
           loop
           muted
           playsinline
@@ -199,7 +199,7 @@
              (y = 0.8, siehe vorherige Berechnung). Das Video selbst wird
              darin um seine halbe Hoehe (0.25) nach oben versetzt, sodass
              seine untere Kante exakt auf dem Drehpunkt liegt. -->
-        <a-entity id="dispenser-video-anchor" position="0 0.8 0.02" rotation="45 0 0">
+        <a-entity id="dispenser-video-anchor" position="0 0.8 0.02" rotation="45 0 0" visible="false">
           <a-video
             src="#dispenserVideo"
             position="0 0.25 0"
@@ -209,12 +209,13 @@
           </a-video>
         </a-entity>
 
-        <a-entity position="-0.35 -0.32 0.02" rotation="0 0 -90">
+        <a-entity id="youtube-btn-1" position="-0.35 -0.32 0.02" rotation="0 0 -90">
           <a-gltf-model
             src="#youtubeModel"
             scale="0.1125 0.1125 0.1125"
             rotation="-90 0 0">
           </a-gltf-model>
+          <a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
         </a-entity>
 
         <a-entity position="0 -0.32 0.02" rotation="0 0 -90">
@@ -307,30 +308,13 @@
           setStatus('AR Visitenkarte von Heiman Mustafa');
           showScanning();
           setupTapInteraction();
-          playDispenserVideo();
         });
-
-        // Fallback fuers Autoplay: manche Browser ignorieren das
-        // autoplay-Attribut, wenn das Video z.B. beim Laden noch nicht
-        // sichtbar/aktiv war. play() erneut anstossen ist ungefaehrlich,
-        // da das Video bereits muted ist (kein Popup-Block wie bei Ton).
-        function playDispenserVideo() {
-          const video = document.getElementById('dispenserVideo');
-          if (video) {
-            video.play().catch(function () {
-              // Wird ignoriert - typischerweise nur relevant, wenn der
-              // Browser noch keine Nutzerinteraktion registriert hat.
-              // Da das Video muted ist, holt targetFound es unten nach.
-            });
-          }
-        }
 
         const target = document.querySelector('[mindar-image-target]');
         if (target) {
           target.addEventListener('targetFound', function () {
             setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
             hideScanning();
-            playDispenserVideo();
           });
 
           target.addEventListener('targetLost', function () {
@@ -388,6 +372,19 @@
 
           bind('linkedin-btn', function () {
             window.open(LINKEDIN_URL, '_blank');
+          });
+
+          bind('youtube-btn-1', function () {
+            const anchor = document.getElementById('dispenser-video-anchor');
+            const video = document.getElementById('dispenserVideo');
+            if (anchor) anchor.setAttribute('visible', 'true');
+            if (video) {
+              video.currentTime = 0;
+              video.play().catch(function () {
+                // Falls play() hier ausnahmsweise blockiert wird: das
+                // Video ist gemuted, ein zweiter Tap loest es zuverlaessig aus.
+              });
+            }
           });
 
           function handleTap(clientX, clientY) {
