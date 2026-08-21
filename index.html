@@ -174,7 +174,7 @@ preload="auto">
 
 <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-<a-entity mindar-image-target="targetIndex: 0">
+<a-entity id="main-target" mindar-image-target="targetIndex: 0">
 
 <!-- Dispenser-Video: um seine halbe Höhe (0.25) nach oben versetzt -->
 <a-entity id="dispenser-video-anchor" position="0 0.8 0.02" rotation="30 0 0" visible="false">
@@ -306,7 +306,7 @@ video.play().catch(function () {});
 }
 }
 
-const target = document.querySelector('[mindar-image-target]');
+const target = document.getElementById('main-target');
 if (target) {
 target.addEventListener('targetFound', function () {
 setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
@@ -339,7 +339,7 @@ video.style.zIndex = '1';
 function setupTapInteraction() {
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
-let interactiveObjects = [];
+const interactiveObjects = new Array();
 
 function bind(id, action) {
 const el = document.getElementById(id);
@@ -383,7 +383,8 @@ pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 raycaster.setFromCamera(pointer, camera);
 const intersects = raycaster.intersectObjects(interactiveObjects, true);
 if (intersects.length > 0) {
-let hit = intersects.object;
+const firstIntersect = intersects.shift();
+let hit = firstIntersect.object;
 while (hit && !hit.userData.tapAction) {
 hit = hit.parent;
 }
@@ -400,7 +401,7 @@ if (!canvas) return;
 
 canvas.addEventListener('touchend', function (e) {
 if (e.changedTouches && e.changedTouches.length > 0) {
-const t = e.changedTouches;
+const t = e.changedTouches.item(0);
 const opened = handleTap(t.clientX, t.clientY);
 if (opened) e.preventDefault();
 }
