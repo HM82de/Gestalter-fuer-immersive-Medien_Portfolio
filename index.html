@@ -192,20 +192,22 @@
           scale="0.175 0.175 0.175">
         </a-box>
 
-        <!-- Dispenser-Video: knapp oberhalb der oberen Kartenkante.
-             Marker ist 156x232px -> Hoehe im normierten MindAR-Koordinaten-
-             system = 232/156 ≈ 1.487, obere Kartenkante liegt somit bei
-             y = 0.744. Video-Hoehe ist 0.5, also Mittelpunkt bei
-             0.744 (Kartenkante) + 0.25 (halbe Videohoehe) + 0.06 (Abstand)
-             = ca. 1.05. y-Wert nach Belieben leicht anpassen fuer mehr/
-             weniger Abstand. -->
-        <a-video
-          src="#dispenserVideo"
-          position="0 1.05 0.02"
-          width="0.9"
-          height="0.5"
-          material="shader: flat; transparent: true">
-        </a-video>
+        <!-- Dispenser-Video: steht mit 45-Grad-Schraege ueber der Karte.
+             Damit die untere Kante beim Kippen an Ort und Stelle bleibt
+             (statt sich mit dem Zentrum mitzudrehen), liegt der Drehpunkt
+             in einer Wrapper-Entity genau an der unteren Video-Kante
+             (y = 0.8, siehe vorherige Berechnung). Das Video selbst wird
+             darin um seine halbe Hoehe (0.25) nach oben versetzt, sodass
+             seine untere Kante exakt auf dem Drehpunkt liegt. -->
+        <a-entity id="dispenser-video-anchor" position="0 0.8 0.02" rotation="45 0 0">
+          <a-video
+            src="#dispenserVideo"
+            position="0 0.25 0"
+            width="0.9"
+            height="0.5"
+            material="shader: flat; transparent: true">
+          </a-video>
+        </a-entity>
 
         <a-entity position="-0.35 -0.32 0.02" rotation="0 0 -90">
           <a-gltf-model
