@@ -180,6 +180,20 @@
           crossorigin="anonymous"
           preload="auto">
         </video>
+
+        <!-- Zweites Video: Extrusion-Clip. Soll direkt sichtbar sein und
+             sofort in Dauerschleife laufen -> autoplay bleibt hier drin. -->
+        <video
+          id="extrusionVideo"
+          src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_extrusion_v001.mp4"
+          autoplay
+          loop
+          muted
+          playsinline
+          webkit-playsinline="true"
+          crossorigin="anonymous"
+          preload="auto">
+        </video>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -205,6 +219,26 @@
             position="0 0.25 0"
             width="0.9"
             height="0.5"
+            material="shader: flat; transparent: true">
+          </a-video>
+        </a-entity>
+
+        <!-- Extrusion-Video: entlang der linken Kartenkante.
+             Marker-Breite ist auf 1 normiert -> linke Kante bei x = -0.5.
+             Gleiches Prinzip wie beim Dispenser-Video: Drehpunkt liegt an
+             der inneren (rechten) Kante des Panels, das Panel selbst wird
+             per Offset nach aussen (hier: nach links, -x) versetzt.
+             Da die linke Kante senkrecht verlaeuft, kippt die 45-Grad-
+             Neigung hier um die Y-Achse statt um die X-Achse (analog zum
+             Dispenser-Video, nur um 90 Grad gedreht gedacht). width/height
+             sind gegenueber dem ersten Video vertauscht, damit das Panel
+             hochkant entlang der Kante steht statt querformatig. -->
+        <a-entity id="extrusion-video-anchor" position="-0.56 0 0.02" rotation="0 45 0">
+          <a-video
+            src="#extrusionVideo"
+            position="-0.25 0 0"
+            width="0.5"
+            height="0.9"
             material="shader: flat; transparent: true">
           </a-video>
         </a-entity>
@@ -308,13 +342,25 @@
           setStatus('AR Visitenkarte von Heiman Mustafa');
           showScanning();
           setupTapInteraction();
+          playExtrusionVideo();
         });
+
+        // Fallback fuers Autoplay des Extrusion-Videos: manche Browser
+        // ignorieren das autoplay-Attribut, falls das Video beim Laden
+        // noch nicht aktiv war. Ungefaehrlich, da das Video gemuted ist.
+        function playExtrusionVideo() {
+          const video = document.getElementById('extrusionVideo');
+          if (video) {
+            video.play().catch(function () {});
+          }
+        }
 
         const target = document.querySelector('[mindar-image-target]');
         if (target) {
           target.addEventListener('targetFound', function () {
             setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
             hideScanning();
+            playExtrusionVideo();
           });
 
           target.addEventListener('targetLost', function () {
