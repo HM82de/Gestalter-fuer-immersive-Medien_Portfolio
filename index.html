@@ -233,17 +233,21 @@
              Dispenser-Video, nur um 90 Grad gedreht gedacht). width/height
              sind gegenueber dem ersten Video vertauscht, damit das Panel
              hochkant entlang der Kante steht statt querformatig. -->
-        <a-entity id="extrusion-video-anchor" position="-0.56 0 0.02" rotation="0 30 0">
-          <!-- rotation="0 0 90" dreht das Video-Bild selbst um 90 Grad,
-               damit es hochkant statt seitlich liegend erscheint. Falls
-               die Drehrichtung falsch ist (spiegelverkehrt/falsch rum):
-               auf "0 0 -90" aendern. -->
+        <a-entity id="extrusion-video-anchor" position="-0.75 0 0.02" rotation="0 30 0">
+          <!-- width/height entsprechen jetzt wieder dem urspruenglichen
+               Seitenverhaeltnis des Videos (wie beim Dispenser-Video:
+               0.9 x 0.5). Die rotation="0 0 90" dreht die GESAMTE Flaeche
+               inkl. ihres Seitenverhaeltnisses um 90 Grad, wodurch am
+               Ende automatisch ein unverzerrtes, hochkant stehendes
+               Panel mit 0.5 (breit) x 0.9 (hoch) entsteht - ohne
+               Streckung, weil das urspruengliche Verhaeltnis erhalten
+               bleibt. -->
           <a-video
             src="#extrusionVideo"
             position="-0.25 0 0"
             rotation="0 0 90"
-            width="0.5"
-            height="0.9"
+            width="0.9"
+            height="0.5"
             material="shader: flat; transparent: true">
           </a-video>
         </a-entity>
