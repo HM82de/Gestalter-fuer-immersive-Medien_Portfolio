@@ -170,6 +170,17 @@ webkit-playsinline="true"
 crossorigin="anonymous"
 preload="auto">
 </video>
+
+<audio id="sound-phone" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/phone.m4a" preload="auto" crossorigin="anonymous"></audio>
+<audio id="sound-mail" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/mail.m4a" preload="auto" crossorigin="anonymous"></audio>
+<audio id="sound-LinkedIn" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/LinkedIn.m4a" preload="auto" crossorigin="anonymous"></audio>
+<audio id="sound-animationDispenser" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/animationDispenser.m4a" preload="auto" crossorigin="anonymous"></audio>
+<audio id="sound-animationExtrusion" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/animationExtrusion.m4a" preload="auto" crossorigin="anonymous"></audio>
+<audio id="sound-animationExtruder" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/animationExtruder.m4a" preload="auto" crossorigin="anonymous"></audio>
+<audio id="sound-animationInkjetLinear" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/animationInkjetLinear.m4a" preload="auto" crossorigin="anonymous"></audio>
+<audio id="sound-animationInkjetPolar" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/animationInkjetPolar.m4a" preload="auto" crossorigin="anonymous"></audio>
+<audio id="sound-modelPrinter" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/modelPrinter.m4a" preload="auto" crossorigin="anonymous"></audio>
+<audio id="sound-phone2" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/phone2.m4a" preload="auto" crossorigin="anonymous"></audio>
 </a-assets>
 
 <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -221,12 +232,13 @@ rotation="-90 0 0">
 <a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
 </a-entity>
 
-<a-entity position="0.35 -0.32 0.02" rotation="0 0 -90">
+<a-entity id="youtube-btn-3" position="0.35 -0.32 0.02" rotation="0 0 -90">
 <a-gltf-model
 src="#youtubeModel"
 scale="0.1125 0.1125 0.1125"
 rotation="-90 0 0">
 </a-gltf-model>
+<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
 </a-entity>
 
 <a-entity id="phone-btn" position="-0.35 -0.62 0.02" rotation="0 0 -90">
@@ -351,6 +363,14 @@ const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const interactiveObjects = new Array();
 
+function playAudio(audioId) {
+const sound = document.getElementById(audioId);
+if (sound) {
+sound.currentTime = 0;
+sound.play().catch(function (e) {});
+}
+}
+
 function triggerHaptic(id) {
 // 1. Physische Vibration (fuer Android-Geraete)
 if (navigator.vibrate) {
@@ -391,10 +411,12 @@ interactiveObjects.push(el.object3D);
 }
 
 bind('phone-btn', function () {
+playAudio('sound-phone');
 window.location.href = 'tel:' + PHONE_NUMBER;
 });
 
 bind('mail-btn', function () {
+playAudio('sound-mail');
 const mailto = 'mailto:' + encodeURIComponent(EMAIL_ADDRESS) +
 '?subject=' + encodeURIComponent(EMAIL_SUBJECT) +
 '&body=' + encodeURIComponent(EMAIL_BODY);
@@ -402,11 +424,28 @@ window.location.href = mailto;
 });
 
 bind('linkedin-btn', function () {
+playAudio('sound-LinkedIn');
 window.open(LINKEDIN_URL, '_blank');
 });
 
-// Erster YouTube-Button (Links): startet Dispenser-Video mit Einblend-Animation
+// Erster YouTube-Button (Links): blendet das Extrusion-Video mit Einblend-Animation ein und startet es (spielt animationExtruder.m4a)
 bind('youtube-btn-1', function () {
+playAudio('sound-animationExtruder');
+const anchor = document.getElementById('extrusion-video-anchor');
+const video = document.getElementById('extrusionVideo');
+if (anchor) {
+anchor.setAttribute('visible', 'true');
+anchor.emit('showVideo');
+}
+if (video) {
+video.currentTime = 0;
+video.play().catch(function () {});
+}
+});
+
+// Zweiter YouTube-Button (Mitte): startet Dispenser-Video mit Einblend-Animation (spielt animationDispenser.m4a)
+bind('youtube-btn-2', function () {
+playAudio('sound-animationDispenser');
 const anchor = document.getElementById('dispenser-video-anchor');
 const video = document.getElementById('dispenserVideo');
 if (anchor) {
@@ -419,18 +458,9 @@ video.play().catch(function () {});
 }
 });
 
-// Zweiter YouTube-Button (Mitte): blendet das Extrusion-Video mit Einblend-Animation ein und startet es
-bind('youtube-btn-2', function () {
-const anchor = document.getElementById('extrusion-video-anchor');
-const video = document.getElementById('extrusionVideo');
-if (anchor) {
-anchor.setAttribute('visible', 'true');
-anchor.emit('showVideo');
-}
-if (video) {
-video.currentTime = 0;
-video.play().catch(function () {});
-}
+// Dritter YouTube-Button (Rechts): spielt animationInkjetLinear.m4a
+bind('youtube-btn-3', function () {
+playAudio('sound-animationInkjetLinear');
 });
 
 function handleTap(clientX, clientY) {
