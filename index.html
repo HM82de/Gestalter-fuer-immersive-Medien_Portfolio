@@ -270,7 +270,7 @@ const scanningOverlay = document.getElementById('scanning-overlay');
 // ---- HIER ANPASSEN: eigene Kontaktdaten ----
 const PHONE_NUMBER = '+4917641996982';
 const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education';
-const EMAIL_SUBJECT = 'Praktikum Gestalter für immersive Medien: Terminabsprache für ein Vorstellungsgespräch';
+const EMAIL_SUBJECT = 'Praktikum als Gestalter für immersive Medien';
 const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\n\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
 const LINKEDIN_URL = 'https://www.linkedin.com/in/heiman-mustafa';
 // ---------------------------------------------
@@ -352,32 +352,59 @@ const pointer = new THREE.Vector2();
 const interactiveObjects = new Array();
 
 function triggerHaptic(id) {
-// 1. Physische Vibration (fuer Android-Geraete)
-if (navigator.vibrate) {
-navigator.vibrate(40);
-}
+  // 1. Physische Vibration (fuer Android-Geraete)
+  if (navigator.vibrate) {
+    navigator.vibrate(40);
+  }
 
-// 2. Visuelle "haptische" Rueckmeldung (Pulsieren/Stauchen)
-const el = document.getElementById(id);
-if (el) {
-// Schnell verkleinern
-el.setAttribute('animation__haptic', {
-property: 'scale',
-to: '0.8 0.8 0.8',
-dur: 80,
-easing: 'easeOutQuad'
-});
+  // 2. Visuelle "haptische" Rueckmeldung (Pulsieren/Stauchen mittels direkter 3D-Skalierung)
+  const el = document.getElementById(id);
+  if (el && el.object3D) {
+    const obj = el.object3D;
+    
+    // Bestehende haptische Animation auf diesem Element abbrechen, um Dopplungen zu verhindern
+    if (obj.userData.hapticInterval) {
+      cancelAnimationFrame(obj.userData.hapticInterval);
+    }
 
-// Weich zurueckfedern auf Originalgroeße
-setTimeout(function () {
-el.setAttribute('animation__haptic', {
-property: 'scale',
-to: '1 1 1',
-dur: 150,
-easing: 'easeOutBack'
-});
-}, 80);
-}
+    const startTime = performance.now();
+    
+    // Phase 1: Schnell zusammenschrumpfen (0-80ms, Ziel-Scale: 0.8)
+    function shrink(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / 80, 1);
+      const ease = progress * (2 - progress); // Ease Out Quad
+      const current = 1.0 - (0.2 * ease);
+      obj.scale.set(current, current, current);
+      
+      if (progress < 1) {
+        obj.userData.hapticInterval = requestAnimationFrame(shrink);
+      } else {
+        // Phase 2: Elastisch zurueckfedern auf 1.0 (80-230ms, Dauer: 150ms)
+        const springStartTime = performance.now();
+        function grow(now2) {
+          const springElapsed = now2 - springStartTime;
+          const springProgress = Math.min(springElapsed / 150, 1);
+          
+          // Mathematische Formel fuer Ease Out Back (Federeffekt)
+          const c1 = 1.70158;
+          const c3 = c1 + 1;
+          const easeBack = 1 + c3 * Math.pow(springProgress - 1, 3) + c1 * Math.pow(springProgress - 1, 2);
+          const currentScale = 0.8 + (0.2 * easeBack);
+          obj.scale.set(currentScale, currentScale, currentScale);
+          
+          if (springProgress < 1) {
+            obj.userData.hapticInterval = requestAnimationFrame(grow);
+          } else {
+            obj.scale.set(1, 1, 1);
+            obj.userData.hapticInterval = null;
+          }
+        }
+        obj.userData.hapticInterval = requestAnimationFrame(grow);
+      }
+    }
+    obj.userData.hapticInterval = requestAnimationFrame(shrink);
+  }
 }
 
 function bind(id, action) {
