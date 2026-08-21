@@ -75,12 +75,13 @@
         background: rgba(0, 0, 0, 0.55);
         z-index: 20;
         pointer-events: none;
-        transition: opacity 0.25s ease;
+        transition: opacity 0.3s ease;
       }
 
       #scanning-overlay.hidden {
-        opacity: 0;
-        visibility: hidden;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        display: none !important;
       }
 
       .scan-frame {
@@ -151,7 +152,7 @@
     </div>
 
     <a-scene
-      mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets.mind; autoStart: true; uiScanning: #scanning-overlay; uiLoading: no;"
+      mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets.mind; autoStart: true; uiScanning: no; uiLoading: no;"
       color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false"
@@ -176,7 +177,7 @@
           scale="0.35 0.35 0.35">
         </a-box>
 
-        <!-- ===== Obere Reihe: 3× YouTube ===== -->
+        <!-- Obere Reihe: 3× YouTube -->
         <a-gltf-model
           src="#youtubeModel"
           position="-0.35 -0.38 0.02"
@@ -198,7 +199,7 @@
           rotation="-90 0 0">
         </a-gltf-model>
 
-        <!-- ===== Untere Reihe: Phone, Mail, LinkedIn ===== -->
+        <!-- Untere Reihe: Phone, Mail, LinkedIn -->
         <a-gltf-model
           src="#phoneModel"
           position="-0.35 -0.62 0.02"
@@ -226,15 +227,14 @@
     </a-scene>
 
     <script>
-      if (window.__arVisitenkarteInitialized) {
-        console.log("AR-Visitenkarte bereits initialisiert");
-      } else {
+      (function () {
+        if (window.__arVisitenkarteInitialized) return;
         window.__arVisitenkarteInitialized = true;
 
         const statusEl = document.getElementById('status');
         const scanningOverlay = document.getElementById('scanning-overlay');
 
-        function setStatus(text, isSuccess = false) {
+        function setStatus(text, isSuccess) {
           if (!statusEl) return;
           statusEl.textContent = text;
           statusEl.style.background = isSuccess
@@ -243,39 +243,49 @@
         }
 
         function hideScanning() {
-          if (scanningOverlay) scanningOverlay.classList.add('hidden');
+          if (scanningOverlay) {
+            scanningOverlay.classList.add('hidden');
+          }
         }
 
         function showScanning() {
-          if (scanningOverlay) scanningOverlay.classList.remove('hidden');
+          if (scanningOverlay) {
+            scanningOverlay.classList.remove('hidden');
+          }
         }
 
-        const sceneEl = document.querySelector('a-scene');
+        // Startzustand
+        setStatus('Kamera auf Visitenkarte richten');
+        showScanning();
 
-        sceneEl.addEventListener('loaded', () => {
+        const sceneEl = document.querySelector('a-scene');
+        if (!sceneEl) return;
+
+        sceneEl.addEventListener('loaded', function () {
           setStatus('Kamera auf Visitenkarte richten');
           showScanning();
         });
 
+        // Events am Target – nur einmal registrieren
         const target = document.querySelector('[mindar-image-target]');
         if (target) {
-          target.addEventListener('targetFound', () => {
+          target.addEventListener('targetFound', function () {
             setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
             hideScanning();
           });
 
-          target.addEventListener('targetLost', () => {
+          target.addEventListener('targetLost', function () {
             setStatus('Kamera auf Visitenkarte richten');
             showScanning();
           });
         }
 
-        window.addEventListener('error', (e) => {
+        window.addEventListener('error', function (e) {
           setStatus('Fehler: ' + (e.message || 'Unbekannt'));
-          statusEl.style.background = 'darkred';
+          if (statusEl) statusEl.style.background = 'darkred';
         });
 
-        setTimeout(() => {
+        setTimeout(function () {
           const video = document.querySelector('video');
           if (video) {
             video.style.display = 'block';
@@ -283,209 +293,7 @@
             video.style.zIndex = '1';
           }
         }, 1000);
-      }
-    </script>
-  </body>
-</html>        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background: rgba(0, 0, 0, 0.55);
-        z-index: 20;
-        pointer-events: none;
-        transition: opacity 0.25s ease;
-      }
-
-      #scanning-overlay.hidden {
-        opacity: 0;
-        visibility: hidden;
-      }
-
-      .scan-frame {
-        width: 56vw;
-        max-width: 250px;
-        aspect-ratio: 1 / 1.55;
-        border: 3px solid rgba(255, 255, 255, 0.9);
-        border-radius: 14px;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
-      }
-
-      .scan-frame img {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 155%;
-        height: auto;
-        opacity: 0.42;
-        transform: translate(-50%, -50%) rotate(270deg) scale(1.05);
-        transform-origin: center center;
-      }
-
-      .scan-text {
-        margin-top: 22px;
-        color: white;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 16px;
-        font-weight: 500;
-        text-align: center;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.7);
-        padding: 0 20px;
-      }
-
-      .scan-frame::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, transparent, #00ff88, transparent);
-        animation: scanline 2.2s ease-in-out infinite;
-        z-index: 2;
-      }
-
-      @keyframes scanline {
-        0% { top: 0; opacity: 0; }
-        15% { opacity: 1; }
-        85% { opacity: 1; }
-        100% { top: 100%; opacity: 0; }
-      }
-    </style>
-  </head>
-
-  <body>
-    <div id="status">Starte AR-Visitenkarte...</div>
-
-    <div id="scanning-overlay">
-      <div class="scan-frame">
-        <img src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/imageMarker_4.jpg"
-             alt="Visitenkarte">
-      </div>
-      <div class="scan-text">
-        Kamera auf die Visitenkarte richten
-      </div>
-    </div>
-
-    <a-scene
-      mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets.mind; autoStart: true; uiScanning: #scanning-overlay; uiLoading: no;"
-      color-space="sRGB"
-      renderer="colorManagement: true, physicallyCorrectLights"
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false"
-      embedded
-    >
-      <a-assets>
-        <a-asset-item id="phoneModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Phone.glb"></a-asset-item>
-        <a-asset-item id="mailModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Mail.glb"></a-asset-item>
-        <a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
-      </a-assets>
-
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-      <a-entity mindar-image-target="targetIndex: 0">
-
-        <!-- Roter Würfel im Zentrum -->
-        <a-box
-          color="#ff2222"
-          position="0 0 0"
-          scale="0.35 0.35 0.35">
-        </a-box>
-
-        <!-- Phone – flach -->
-        <a-gltf-model
-          src="#phoneModel"
-          position="-0.35 -0.62 0.02"
-          scale="0.1125 0.1125 0.1125"
-          rotation="-90 0 0">
-        </a-gltf-model>
-
-        <!-- Mail – flach + 90° nach links (über Parent) -->
-        <a-entity position="0 -0.62 0.02" rotation="0 0 -90">
-          <a-gltf-model
-            src="#mailModel"
-            scale="0.1125 0.1125 0.1125"
-            rotation="-90 0 0">
-          </a-gltf-model>
-        </a-entity>
-
-        <!-- LinkedIn – flach + 90° nach links (über Parent) -->
-        <a-entity position="0.35 -0.62 0.02" rotation="0 0 -90">
-          <a-gltf-model
-            src="#linkedinModel"
-            scale="0.1125 0.1125 0.1125"
-            rotation="-90 0 0">
-          </a-gltf-model>
-        </a-entity>
-
-      </a-entity>
-    </a-scene>
-
-    <script>
-      if (window.__arVisitenkarteInitialized) {
-        console.log("AR-Visitenkarte bereits initialisiert");
-      } else {
-        window.__arVisitenkarteInitialized = true;
-
-        const statusEl = document.getElementById('status');
-        const scanningOverlay = document.getElementById('scanning-overlay');
-
-        function setStatus(text, isSuccess = false) {
-          if (!statusEl) return;
-          statusEl.textContent = text;
-          statusEl.style.background = isSuccess
-            ? 'rgba(0, 140, 0, 0.88)'
-            : 'rgba(0, 0, 0, 0.78)';
-        }
-
-        function hideScanning() {
-          if (scanningOverlay) scanningOverlay.classList.add('hidden');
-        }
-
-        function showScanning() {
-          if (scanningOverlay) scanningOverlay.classList.remove('hidden');
-        }
-
-        const sceneEl = document.querySelector('a-scene');
-
-        sceneEl.addEventListener('loaded', () => {
-          setStatus('Kamera auf Visitenkarte richten');
-          showScanning();
-        });
-
-        const target = document.querySelector('[mindar-image-target]');
-        if (target) {
-          target.addEventListener('targetFound', () => {
-            setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
-            hideScanning();
-          });
-
-          target.addEventListener('targetLost', () => {
-            setStatus('Kamera auf Visitenkarte richten');
-            showScanning();
-          });
-        }
-
-        window.addEventListener('error', (e) => {
-          setStatus('Fehler: ' + (e.message || 'Unbekannt'));
-          statusEl.style.background = 'darkred';
-        });
-
-        setTimeout(() => {
-          const video = document.querySelector('video');
-          if (video) {
-            video.style.display = 'block';
-            video.style.opacity = '1';
-            video.style.zIndex = '1';
-          }
-        }, 1000);
-      }
+      })();
     </script>
   </body>
 </html>
