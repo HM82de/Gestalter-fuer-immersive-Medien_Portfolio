@@ -337,6 +337,404 @@ const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const interactiveObjects = new Array();
 
+function triggerHaptic(id) {
+// 1. Physische Vibration (fuer Android-Geraete)
+if (navigator.vibrate) {
+navigator.vibrate(40);
+}
+
+// 2. Visuelle "haptische" Rueckmeldung (Pulsieren/Stauchen)
+const el = document.getElementById(id);
+if (el) {
+// Schnell verkleinern
+el.setAttribute('animation__haptic', {
+property: 'scale',
+to: '0.8 0.8 0.8',
+dur: 80,
+easing: 'easeOutQuad'
+});
+
+// Weich zurueckfedern auf Originalgroeße
+setTimeout(function () {
+el.setAttribute('animation__haptic', {
+property: 'scale',
+to: '1 1 1',
+dur: 150,
+easing: 'easeOutBack'
+});
+}, 80);
+}
+}
+
+function bind(id, action) {
+const el = document.getElementById(id);
+if (!el) return;
+el.object3D.userData.tapAction = function () {
+triggerHaptic(id);
+action();
+};
+interactiveObjects.push(el.object3D);
+}
+
+bind('phone-btn', function () {
+window.location.href = 'tel:' + PHONE_NUMBER;
+});
+
+bind('mail-btn', function () {
+const mailto = 'mailto:' + encodeURIComponent(EMAIL_ADDRESS) +
+'?subject=' + encodeURIComponent(EMAIL_SUBJECT) +
+'&body=' + encodeURIComponent(EMAIL_BODY);
+window.location.href = mailto;
+});
+
+bind('linkedin-btn', function () {
+window.open(LINKEDIN_URL, '_blank');
+});
+
+// Erster YouTube-Button (Links): startet Dispenser-Video mit Einblend-Animation
+bind('youtube-btn-1', function () {
+const anchor = document.getElementById('dispenser-video-anchor');
+const video = document.getElementById('dispenserVideo');
+if (anchor) {
+anchor.setAttribute('visible', 'true');
+anchor.emit('showVideo');
+}
+if (video) {
+video.currentTime = 0;
+video.play().catch(function () {});
+}
+});
+
+// Zweiter YouTube-Button (Mitte): blendet das Extrusion-Video mit Einblend-Animation ein und startet es
+bind('youtube-btn-2', function () {
+const anchor = document.getElementById('extrusion-video-anchor');
+const video = document.getElementById('extrusionVideo');
+if (anchor) {
+anchor.setAttribute('visible', 'true');
+anchor.emit('showVideo');
+}
+if (video) {
+video.currentTime = 0;
+video.play().catch(function () {});
+}
+});
+
+function handleTap(clientX, clientY) {
+const canvas = sceneEl.canvas;
+const camera = sceneEl.camera;
+if (!canvas || !camera) return;
+const rect = canvas.getBoundingClientRect();
+pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+raycaster.setFromCamera(pointer, camera);
+const intersects = raycaster.intersectObjects(interactiveObjects, true);
+if (intersects.length > 0) {
+const firstIntersect = intersects.shift();
+let hit = firstIntersect.object;
+while (hit && !hit.userData.tapAction) {
+hit = hit.parent;
+}
+if (hit && hit.userData.tapAction) {
+hit.userData.tapAction();
+return true;
+}
+}
+return false;
+}
+
+const canvas = sceneEl.canvas;
+if (!canvas) return;
+
+canvas.addEventListener('touchend', function (e) {
+if (e.changedTouches && e.changedTouches.length > 0) {
+const t = e.changedTouches.item(0);
+const opened = handleTap(t.clientX, t.clientY);
+if (opened) e.preventDefault();
+}
+}, { passive: false });
+
+canvas.addEventListener('click', function (e) {
+handleTap(e.clientX, e.clientY);
+});
+}
+})();
+</script>
+</body>
+</html>display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+background: rgba(0, 0, 0, 0.55);
+z-index: 20;
+pointer-events: none;
+transition: opacity 0.3s ease;
+}
+#scanning-overlay.hidden {
+opacity: 0 !important;
+visibility: hidden !important;
+display: none !important;
+}
+.scan-frame {
+width: 56vw;
+max-width: 250px;
+aspect-ratio: 1 / 1.55;
+border: 3px solid rgba(255, 255, 255, 0.9);
+border-radius: 14px;
+position: relative;
+overflow: hidden;
+box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+}
+.scan-frame img {
+position: absolute;
+top: 50%;
+left: 50%;
+width: 155%;
+height: auto;
+opacity: 0.42;
+transform: translate(-50%, -50%) rotate(270deg) scale(1.05);
+transform-origin: center center;
+}
+.scan-text {
+margin-top: 22px;
+color: white;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+font-size: 16px;
+font-weight: 500;
+text-align: center;
+text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+padding: 0 20px;
+}
+.scan-frame::after {
+content: "";
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+height: 3px;
+background: linear-gradient(90deg, transparent, #00ff88, transparent);
+animation: scanline 2.2s ease-in-out infinite;
+z-index: 2;
+}
+@keyframes scanline {
+0% { top: 0; opacity: 0; }
+15% { opacity: 1; }
+85% { opacity: 1; }
+100% { top: 100%; opacity: 0; }
+}
+</style>
+</head>
+<body>
+<div id="status">AR Visitenkarte von Heiman Mustafa</div>
+<div id="scanning-overlay">
+<div class="scan-frame">
+<img src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/imageMarker_4.jpg" alt="Visitenkarte">
+</div>
+<div class="scan-text">
+Kamera auf die Visitenkarte richten
+</div>
+</div>
+<a-scene
+mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets.mind; autoStart: true; uiScanning: no; uiLoading: no;"
+color-space="sRGB"
+renderer="colorManagement: true, physicallyCorrectLights"
+vr-mode-ui="enabled: false"
+device-orientation-permission-ui="enabled: false"
+embedded
+>
+<a-assets>
+<a-asset-item id="phoneModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Phone.glb"></a-asset-item>
+<a-asset-item id="mailModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Mail.glb"></a-asset-item>
+<a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
+<a-asset-item id="youtubeModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Youtube.glb"></a-asset-item>
+
+<video
+id="dispenserVideo"
+src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_dispenser_v001.mp4"
+loop
+muted
+playsinline
+webkit-playsinline="true"
+crossorigin="anonymous"
+preload="auto">
+</video>
+
+<video
+id="extrusionVideo"
+src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_extrusion_v001.mp4"
+loop
+muted
+playsinline
+webkit-playsinline="true"
+crossorigin="anonymous"
+preload="auto">
+</video>
+</a-assets>
+
+<a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+<a-entity id="main-target" mindar-image-target="targetIndex: 0">
+
+<!-- Dispenser-Video: Abstand auf y = 0.855 erhoeht, Breite auf 1.0 vergroessert, Hoehe auf 0.56 angepasst. Mit Einblend-Animation (Scale) -->
+<a-entity id="dispenser-video-anchor" position="0 0.855 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
+<!-- Konturrahmen (weiß, leicht groesser und knapp hinter dem Video platziert) -->
+<a-plane position="0 0.28 -0.001" width="1.04" height="0.60" color="#FFFFFF" material="shader: flat"></a-plane>
+<a-video
+src="#dispenserVideo"
+position="0 0.28 0"
+width="1.0"
+height="0.56"
+material="shader: flat; transparent: true">
+</a-video>
+</a-entity>
+
+<!-- Extrusion-Video: positioniert auf x = -0.58, Hoehe 1.55, Breite 0.86 -->
+<a-entity id="extrusion-video-anchor" position="-0.58 0 0.02" rotation="0 30 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
+<!-- Konturrahmen (weiß, leicht groesser und knapp hinter dem Video platziert) -->
+<a-plane position="-0.43 0 -0.001" rotation="0 0 90" width="1.59" height="0.90" color="#FFFFFF" material="shader: flat"></a-plane>
+<a-video
+src="#extrusionVideo"
+position="-0.43 0 0"
+rotation="0 0 90"
+width="1.55"
+height="0.86"
+material="shader: flat; transparent: true">
+</a-video>
+</a-entity>
+
+<a-entity id="youtube-btn-1" position="-0.35 -0.32 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#youtubeModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
+<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
+</a-entity>
+
+<a-entity id="youtube-btn-2" position="0 -0.32 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#youtubeModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
+<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
+</a-entity>
+
+<a-entity position="0.35 -0.32 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#youtubeModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
+</a-entity>
+
+<a-entity id="phone-btn" position="-0.35 -0.62 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#phoneModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
+<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
+</a-entity>
+
+<a-entity id="mail-btn" position="0 -0.62 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#mailModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
+<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
+</a-entity>
+
+<a-entity id="linkedin-btn" position="0.35 -0.62 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#linkedinModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
+<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
+</a-entity>
+
+</a-entity>
+</a-scene>
+
+<script>
+(function () {
+if (window.__arVisitenkarteInitialized) return;
+window.__arVisitenkarteInitialized = true;
+
+const statusEl = document.getElementById('status');
+const scanningOverlay = document.getElementById('scanning-overlay');
+
+// ---- HIER ANPASSEN: eigene Kontaktdaten ----
+const PHONE_NUMBER = '+4917641996982';
+const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education';
+const EMAIL_SUBJECT = 'Praktikum Gestalter für immersive Medien: Terminabsprache für ein Vorstellungsgespräch';
+const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\n\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
+const LINKEDIN_URL = 'https://www.linkedin.com/in/heiman-mustafa';
+// ---------------------------------------------
+
+function setStatus(text, isSuccess) {
+if (!statusEl) return;
+statusEl.textContent = text;
+statusEl.style.background = isSuccess
+? 'rgba(0, 140, 0, 0.88)'
+: 'rgba(0, 0, 0, 0.78)';
+}
+
+function hideScanning() {
+if (scanningOverlay) scanningOverlay.classList.add('hidden');
+}
+
+function showScanning() {
+if (scanningOverlay) scanningOverlay.classList.remove('hidden');
+}
+
+setStatus('AR Visitenkarte von Heiman Mustafa');
+showScanning();
+
+const sceneEl = document.querySelector('a-scene');
+if (!sceneEl) return;
+
+sceneEl.addEventListener('loaded', function () {
+setStatus('AR Visitenkarte von Heiman Mustafa');
+showScanning();
+setupTapInteraction();
+});
+
+const target = document.getElementById('main-target');
+if (target) {
+target.addEventListener('targetFound', function () {
+setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
+hideScanning();
+});
+target.addEventListener('targetLost', function () {
+setStatus('AR Visitenkarte von Heiman Mustafa');
+showScanning();
+});
+}
+
+window.addEventListener('error', function (e) {
+setStatus('Fehler: ' + (e.message || 'Unbekannt'));
+if (statusEl) statusEl.style.background = 'darkred';
+});
+
+setTimeout(function () {
+const video = document.querySelector('video');
+if (video) {
+video.style.display = 'block';
+video.style.opacity = '1';
+video.style.zIndex = '1';
+}
+}, 1000);
+
+// -----------------------------------------------------------------
+// Direktes Tap-Handling auf 3D-Objekte (statt A-Frame cursor).
+// -----------------------------------------------------------------
+function setupTapInteraction() {
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+const interactiveObjects = new Array();
+
 function bind(id, action) {
 const el = document.getElementById(id);
 if (!el) return;
