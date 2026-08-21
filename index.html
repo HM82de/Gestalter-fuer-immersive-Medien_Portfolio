@@ -177,8 +177,8 @@
           scale="0.35 0.35 0.35">
         </a-box>
 
-        <!-- Obere Reihe: 3× YouTube – Abstand halbiert (y = -0.42) -->
-        <a-entity position="-0.35 -0.42 0.02" rotation="0 0 -90">
+        <!-- Obere Reihe: 3× YouTube – mit sichtbarem Abstand zur unteren Reihe -->
+        <a-entity position="-0.35 -0.32 0.02" rotation="0 0 -90">
           <a-gltf-model
             src="#youtubeModel"
             scale="0.1125 0.1125 0.1125"
@@ -186,7 +186,7 @@
           </a-gltf-model>
         </a-entity>
 
-        <a-entity position="0 -0.42 0.02" rotation="0 0 -90">
+        <a-entity position="0 -0.32 0.02" rotation="0 0 -90">
           <a-gltf-model
             src="#youtubeModel"
             scale="0.1125 0.1125 0.1125"
@@ -194,7 +194,7 @@
           </a-gltf-model>
         </a-entity>
 
-        <a-entity position="0.35 -0.42 0.02" rotation="0 0 -90">
+        <a-entity position="0.35 -0.32 0.02" rotation="0 0 -90">
           <a-gltf-model
             src="#youtubeModel"
             scale="0.1125 0.1125 0.1125"
@@ -260,7 +260,7 @@
         if (!sceneEl) return;
 
         sceneEl.addEventListener('loaded', function () {
-          setStatus('AR Visitenkarte von Heiman Mustafa');
+          setStatus('Kamera auf Visitenkarte richten');
           showScanning();
         });
 
@@ -272,7 +272,7 @@
           });
 
           target.addEventListener('targetLost', function () {
-            setStatus('Kamera auf Visitenkarte richten');
+            setStatus('AR Visitenkarte von Heiman Mustafa');
             showScanning();
           });
         }
