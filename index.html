@@ -159,7 +159,6 @@ crossorigin="anonymous"
 preload="auto">
 </video>
 
-<!-- ExtrusionVideo startet jetzt ohne autoplay und wartet auf den Button-Klick -->
 <video
 id="extrusionVideo"
 src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_extrusion_v001.mp4"
@@ -187,8 +186,8 @@ material="shader: flat; transparent: true">
 </a-video>
 </a-entity>
 
-<!-- Extrusion-Video: Nahtlos an der linken Kartenkante (x = -0.5) platziert, vollskaliert und INITIAL ausgeblendet -->
-<a-entity id="extrusion-video-anchor" position="-0.5 0 0.02" rotation="0 30 0" visible="false">
+<!-- Extrusion-Video: Jetzt auf x = -0.65 positioniert (0.15 Einheiten Abstand zur linken Kante) -->
+<a-entity id="extrusion-video-anchor" position="-0.65 0 0.02" rotation="0 30 0" visible="false">
 <a-video
 src="#extrusionVideo"
 position="-0.43 0 0"
@@ -208,7 +207,6 @@ rotation="-90 0 0">
 <a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
 </a-entity>
 
-<!-- Mittlerer YouTube-Button: mit ID "youtube-btn-2" und eigener Hit-Area für komfortables Klicken -->
 <a-entity id="youtube-btn-2" position="0 -0.32 0.02" rotation="0 0 -90">
 <a-gltf-model
 src="#youtubeModel"
@@ -367,7 +365,7 @@ video.play().catch(function () {});
 }
 });
 
-// NEU: Zweiter YouTube-Button (Mitte): blendet das Extrusion-Video ein und startet es
+// Zweiter YouTube-Button (Mitte): blendet das Extrusion-Video ein und startet es
 bind('youtube-btn-2', function () {
 const anchor = document.getElementById('extrusion-video-anchor');
 const video = document.getElementById('extrusionVideo');
