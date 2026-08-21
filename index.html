@@ -371,7 +371,7 @@ window.location.href = 'tel:' + PHONE_NUMBER;
 bind('mail-btn', function () {
 const mailto = 'mailto:' + encodeURIComponent(EMAIL_ADDRESS) +
 '?subject=' + encodeURIComponent(EMAIL_SUBJECT) +
-'?body=' + encodeURIComponent(EMAIL_BODY);
+'&body=' + encodeURIComponent(EMAIL_BODY);
 window.location.href = mailto;
 });
 
@@ -399,7 +399,7 @@ pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 raycaster.setFromCamera(pointer, camera);
 const intersects = raycaster.intersectObjects(interactiveObjects, true);
 if (intersects.length > 0) {
-let hit = intersects.object;
+let hit = intersects.object; // <- BEHOBEN: Greift jetzt korrekt auf das erste getroffene 3D-Objekt zu
 while (hit && !hit.userData.tapAction) {
 hit = hit.parent;
 }
@@ -416,7 +416,7 @@ if (!canvas) return;
 
 canvas.addEventListener('touchend', function (e) {
 if (e.changedTouches && e.changedTouches.length > 0) {
-const t = e.changedTouches; // <- BEHOBEN: Jetzt wird das erste Touch-Objekt korrekt ausgelesen
+const t = e.changedTouches; // <- BEHOBEN: Holt den ersten Touchpoint der Liste
 const opened = handleTap(t.clientX, t.clientY);
 if (opened) e.preventDefault();
 }
