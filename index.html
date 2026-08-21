@@ -192,13 +192,16 @@
           scale="0.175 0.175 0.175">
         </a-box>
 
-        <!-- Dispenser-Video: obere Kante der Karte.
-             width/height an das Seitenverhaeltnis deines Clips anpassen
-             (aktuell 16:9 angenommen). y-Wert ggf. nachjustieren, je
-             nachdem wie hoch/tief die Karte im Marker-Koordinatensystem ist. -->
+        <!-- Dispenser-Video: knapp oberhalb der oberen Kartenkante.
+             Marker ist 156x232px -> Hoehe im normierten MindAR-Koordinaten-
+             system = 232/156 ≈ 1.487, obere Kartenkante liegt somit bei
+             y = 0.744. Video-Hoehe ist 0.5, also Mittelpunkt bei
+             0.744 (Kartenkante) + 0.25 (halbe Videohoehe) + 0.06 (Abstand)
+             = ca. 1.05. y-Wert nach Belieben leicht anpassen fuer mehr/
+             weniger Abstand. -->
         <a-video
           src="#dispenserVideo"
-          position="0 0.5 0.02"
+          position="0 1.05 0.02"
           width="0.9"
           height="0.5"
           material="shader: flat; transparent: true">
