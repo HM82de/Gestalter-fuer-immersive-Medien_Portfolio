@@ -1,490 +1,429 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AR-Visitenkarte von Heiman Mustafa</title>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>AR-Visitenkarte von Heiman Mustafa</title>
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+<style>
+html, body {
+margin: 0;
+width: 100%;
+height: 100%;
+overflow: hidden;
+background: #000;
+}
+#status {
+position: fixed;
+top: 18px;
+left: 50%;
+transform: translateX(-50%);
+color: white;
+background: rgba(0, 0, 0, 0.78);
+padding: 11px 20px;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+font-size: 15px;
+font-weight: 500;
+z-index: 99999;
+border-radius: 10px;
+text-align: center;
+max-width: 88%;
+line-height: 1.3;
+pointer-events: none;
+box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+video {
+display: block !important;
+position: absolute !important;
+top: 0 !important;
+left: 0 !important;
+width: 100% !important;
+height: 100% !important;
+object-fit: cover !important;
+z-index: 1 !important;
+opacity: 1 !important;
+}
+a-scene {
+position: absolute !important;
+top: 0;
+left: 0;
+width: 100% !important;
+height: 100% !important;
+z-index: 2 !important;
+}
+.a-canvas {
+background: transparent !important;
+}
+#scanning-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+background: rgba(0, 0, 0, 0.55);
+z-index: 20;
+pointer-events: none;
+transition: opacity 0.3s ease;
+}
+#scanning-overlay.hidden {
+opacity: 0 !important;
+visibility: hidden !important;
+display: none !important;
+}
+.scan-frame {
+width: 56vw;
+max-width: 250px;
+aspect-ratio: 1 / 1.55;
+border: 3px solid rgba(255, 255, 255, 0.9);
+border-radius: 14px;
+position: relative;
+overflow: hidden;
+box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+}
+.scan-frame img {
+position: absolute;
+top: 50%;
+left: 50%;
+width: 155%;
+height: auto;
+opacity: 0.42;
+transform: translate(-50%, -50%) rotate(270deg) scale(1.05);
+transform-origin: center center;
+}
+.scan-text {
+margin-top: 22px;
+color: white;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+font-size: 16px;
+font-weight: 500;
+text-align: center;
+text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+padding: 0 20px;
+}
+.scan-frame::after {
+content: "";
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+height: 3px;
+background: linear-gradient(90deg, transparent, #00ff88, transparent);
+animation: scanline 2.2s ease-in-out infinite;
+z-index: 2;
+}
+@keyframes scanline {
+0% { top: 0; opacity: 0; }
+15% { opacity: 1; }
+85% { opacity: 1; }
+100% { top: 100%; opacity: 0; }
+}
+</style>
+</head>
+<body>
+<div id="status">AR Visitenkarte von Heiman Mustafa</div>
+<div id="scanning-overlay">
+<div class="scan-frame">
+<img src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/imageMarker_4.jpg" alt="Visitenkarte">
+</div>
+<div class="scan-text">
+Kamera auf die Visitenkarte richten
+</div>
+</div>
+<a-scene
+mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets.mind; autoStart: true; uiScanning: no; uiLoading: no;"
+color-space="sRGB"
+renderer="colorManagement: true, physicallyCorrectLights"
+vr-mode-ui="enabled: false"
+device-orientation-permission-ui="enabled: false"
+embedded
+>
+<a-assets>
+<a-asset-item id="phoneModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Phone.glb"></a-asset-item>
+<a-asset-item id="mailModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Mail.glb"></a-asset-item>
+<a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
+<a-asset-item id="youtubeModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Youtube.glb"></a-asset-item>
 
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+<!-- Video-Element: muted + playsinline sind Pflicht, sonst blockiert
+iOS Safari das Abspielen komplett. loop sorgt fuer die
+Dauerschleife. crossorigin wird benoetigt, damit die Video-
+textur in WebGL genutzt werden darf. Kein autoplay mehr -
+das Video startet erst per Tap auf den YouTube-Button. -->
+<video
+id="dispenserVideo"
+src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_dispenser_v001.mp4"
+loop
+muted
+playsinline
+webkit-playsinline="true"
+crossorigin="anonymous"
+preload="auto">
+</video>
 
-    <style>
-      html, body {
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: #000;
-      }
+<!-- Zweites Video: Extrusion-Clip. Soll direkt sichtbar sein und
+sofort in Dauerschleife laufen -> autoplay bleibt hier drin. -->
+<video
+id="extrusionVideo"
+src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_extrusion_v001.mp4"
+autoplay
+loop
+muted
+playsinline
+webkit-playsinline="true"
+crossorigin="anonymous"
+preload="auto">
+</video>
+</a-assets>
 
-      #status {
-        position: fixed;
-        top: 18px;
-        left: 50%;
-        transform: translateX(-50%);
-        color: white;
-        background: rgba(0, 0, 0, 0.78);
-        padding: 11px 20px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 15px;
-        font-weight: 500;
-        z-index: 99999;
-        border-radius: 10px;
-        text-align: center;
-        max-width: 88%;
-        line-height: 1.3;
-        pointer-events: none;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      }
+<a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      video {
-        display: block !important;
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: cover !important;
-        z-index: 1 !important;
-        opacity: 1 !important;
-      }
+<a-entity mindar-image-target="targetIndex: 0">
 
-      a-scene {
-        position: absolute !important;
-        top: 0;
-        left: 0;
-        width: 100% !important;
-        height: 100% !important;
-        z-index: 2 !important;
-      }
+<!-- Dispenser-Video: darin um seine halbe Hoehe (0.25) nach oben versetzt, sodass
+seine untere Kante exakt auf dem Drehpunkt liegt. -->
+<a-entity id="dispenser-video-anchor" position="0 0.8 0.02" rotation="30 0 0" visible="false">
+<a-video
+src="#dispenserVideo"
+position="0 0.25 0"
+width="0.9"
+height="0.5"
+material="shader: flat; transparent: true">
+</a-video>
+</a-entity>
 
-      .a-canvas {
-        background: transparent !important;
-      }
+<!-- Extrusion-Video: entlang der linken Kartenkante.
+Karten-Höhe im AR-Raum ist durch Scan-Overlay auf 1.55 definiert.
+Wir setzen den Anchor exakt auf die linke Kante (x = -0.5) und winkeln ihn leicht an (rotation Y=30).
+Durch Verschiebung des Videos lokal auf x = -0.43 (Hälfte von width 0.86) dockt die rechte 
+Videokante perfekt bündig am Tracker an. -->
+<a-entity id="extrusion-video-anchor" position="-0.5 0 0.02" rotation="0 30 0">
+<a-video
+src="#extrusionVideo"
+position="-0.43 0 0"
+rotation="0 0 90"
+width="1.55"
+height="0.86"
+material="shader: flat; transparent: true">
+</a-video>
+</a-entity>
 
-      #scanning-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background: rgba(0, 0, 0, 0.55);
-        z-index: 20;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-      }
+<a-entity id="youtube-btn-1" position="-0.35 -0.32 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#youtubeModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
+<a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
+</a-entity>
 
-      #scanning-overlay.hidden {
-        opacity: 0 !important;
-        visibility: hidden !important;
-        display: none !important;
-      }
+<a-entity position="0 -0.32 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#youtubeModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
+</a-entity>
 
-      .scan-frame {
-        width: 56vw;
-        max-width: 250px;
-        aspect-ratio: 1 / 1.55;
-        border: 3px solid rgba(255, 255, 255, 0.9);
-        border-radius: 14px;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
-      }
+<a-entity position="0.35 -0.32 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#youtubeModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
+</a-entity>
 
-      .scan-frame img {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 155%;
-        height: auto;
-        opacity: 0.42;
-        transform: translate(-50%, -50%) rotate(270deg) scale(1.05);
-        transform-origin: center center;
-      }
+<!-- Phone: eigene wrapper-Entity mit id, damit sie im Script anvisiert werden kann -->
+<a-entity id="phone-btn" position="-0.35 -0.62 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#phoneModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
+<a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
+</a-entity>
 
-      .scan-text {
-        margin-top: 22px;
-        color: white;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 16px;
-        font-weight: 500;
-        text-align: center;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.7);
-        padding: 0 20px;
-      }
+<!-- Mail: eigene wrapper-Entity mit id, damit sie im Script anvisiert werden kann -->
+<a-entity id="mail-btn" position="0 -0.62 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#mailModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
+<a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
+</a-entity>
 
-      .scan-frame::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, transparent, #00ff88, transparent);
-        animation: scanline 2.2s ease-in-out infinite;
-        z-index: 2;
-      }
+<a-entity id="linkedin-btn" position="0.35 -0.62 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#linkedinModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
+<a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
+</a-entity>
 
-      @keyframes scanline {
-        0% { top: 0; opacity: 0; }
-        15% { opacity: 1; }
-        85% { opacity: 1; }
-        100% { top: 100%; opacity: 0; }
-      }
-    </style>
-  </head>
+</a-entity>
+</a-scene>
 
-  <body>
-    <div id="status">AR Visitenkarte von Heiman Mustafa</div>
+<script>
+(function () {
+if (window.__arVisitenkarteInitialized) return;
+window.__arVisitenkarteInitialized = true;
+const statusEl = document.getElementById('status');
+const scanningOverlay = document.getElementById('scanning-overlay');
 
-    <div id="scanning-overlay">
-      <div class="scan-frame">
-        <img src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/imageMarker_4.jpg"
-             alt="Visitenkarte">
-      </div>
-      <div class="scan-text">
-        Kamera auf die Visitenkarte richten
-      </div>
-    </div>
+// ---- HIER ANPASSEN: eigene Kontaktdaten ----
+const PHONE_NUMBER = '+4917641996982';
+const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education';
+const EMAIL_SUBJECT = 'Praktikum Gestalter für immersive Medien: Terminabsprache für ein Vorstellungsgespräch';
+const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\\n\\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
+const LINKEDIN_URL = 'https://www.linkedin.com/in/heiman-mustafa';
+// ---------------------------------------------
 
-    <a-scene
-      mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets.mind; autoStart: true; uiScanning: no; uiLoading: no;"
-      color-space="sRGB"
-      renderer="colorManagement: true, physicallyCorrectLights"
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false"
-      embedded
-    >
-      <a-assets>
-        <a-asset-item id="phoneModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Phone.glb"></a-asset-item>
-        <a-asset-item id="mailModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Mail.glb"></a-asset-item>
-        <a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
-        <a-asset-item id="youtubeModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Youtube.glb"></a-asset-item>
+function setStatus(text, isSuccess) {
+if (!statusEl) return;
+statusEl.textContent = text;
+statusEl.style.background = isSuccess
+? 'rgba(0, 140, 0, 0.88)'
+: 'rgba(0, 0, 0, 0.78)';
+}
 
-        <!-- Video-Element: muted + playsinline sind Pflicht, sonst blockiert
-             iOS Safari das Abspielen komplett. loop sorgt fuer die
-             Dauerschleife. crossorigin wird benoetigt, damit die Video-
-             textur in WebGL genutzt werden darf. Kein autoplay mehr -
-             das Video startet erst per Tap auf den YouTube-Button. -->
-        <video
-          id="dispenserVideo"
-          src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_dispenser_v001.mp4"
-          loop
-          muted
-          playsinline
-          webkit-playsinline="true"
-          crossorigin="anonymous"
-          preload="auto">
-        </video>
+function hideScanning() {
+if (scanningOverlay) scanningOverlay.classList.add('hidden');
+}
 
-        <!-- Zweites Video: Extrusion-Clip. Soll direkt sichtbar sein und
-             sofort in Dauerschleife laufen -> autoplay bleibt hier drin. -->
-        <video
-          id="extrusionVideo"
-          src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_extrusion_v001.mp4"
-          autoplay
-          loop
-          muted
-          playsinline
-          webkit-playsinline="true"
-          crossorigin="anonymous"
-          preload="auto">
-        </video>
-      </a-assets>
+function showScanning() {
+if (scanningOverlay) scanningOverlay.classList.remove('hidden');
+}
 
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+setStatus('AR Visitenkarte von Heiman Mustafa');
+showScanning();
 
-      <a-entity mindar-image-target="targetIndex: 0">
+const sceneEl = document.querySelector('a-scene');
+if (!sceneEl) return;
 
-        <a-box
-          color="#ff2222"
-          position="0 0 0"
-          scale="0.175 0.175 0.175">
-        </a-box>
+sceneEl.addEventListener('loaded', function () {
+setStatus('AR Visitenkarte von Heiman Mustafa');
+showScanning();
+setupTapInteraction();
+playExtrusionVideo();
+});
 
-        <!-- Dispenser-Video: steht mit 45-Grad-Schraege ueber der Karte.
-             Damit die untere Kante beim Kippen an Ort und Stelle bleibt
-             (statt sich mit dem Zentrum mitzudrehen), liegt der Drehpunkt
-             in einer Wrapper-Entity genau an der unteren Video-Kante
-             (y = 0.8, siehe vorherige Berechnung). Das Video selbst wird
-             darin um seine halbe Hoehe (0.25) nach oben versetzt, sodass
-             seine untere Kante exakt auf dem Drehpunkt liegt. -->
-        <a-entity id="dispenser-video-anchor" position="0 0.8 0.02" rotation="30 0 0" visible="false">
-          <a-video
-            src="#dispenserVideo"
-            position="0 0.25 0"
-            width="0.9"
-            height="0.5"
-            material="shader: flat; transparent: true">
-          </a-video>
-        </a-entity>
+function playExtrusionVideo() {
+const video = document.getElementById('extrusionVideo');
+if (video) {
+video.play().catch(function () {});
+}
+}
 
-        <!-- Extrusion-Video: entlang der linken Kartenkante.
-             Marker-Breite ist auf 1 normiert -> linke Kante bei x = -0.5.
-             Gleiches Prinzip wie beim Dispenser-Video: Drehpunkt liegt an
-             der inneren (rechten) Kante des Panels, das Panel selbst wird
-             per Offset nach aussen (hier: nach links, -x) versetzt.
-             Da die linke Kante senkrecht verlaeuft, kippt die 45-Grad-
-             Neigung hier um die Y-Achse statt um die X-Achse (analog zum
-             Dispenser-Video, nur um 90 Grad gedreht gedacht). width/height
-             sind gegenueber dem ersten Video vertauscht, damit das Panel
-             hochkant entlang der Kante steht statt querformatig. -->
-        <a-entity id="extrusion-video-anchor" position="-0.75 0 0.02" rotation="0 30 0">
-          <!-- width/height entsprechen jetzt wieder dem urspruenglichen
-               Seitenverhaeltnis des Videos (wie beim Dispenser-Video:
-               0.9 x 0.5). Die rotation="0 0 90" dreht die GESAMTE Flaeche
-               inkl. ihres Seitenverhaeltnisses um 90 Grad, wodurch am
-               Ende automatisch ein unverzerrtes, hochkant stehendes
-               Panel mit 0.5 (breit) x 0.9 (hoch) entsteht - ohne
-               Streckung, weil das urspruengliche Verhaeltnis erhalten
-               bleibt. -->
-          <a-video
-            src="#extrusionVideo"
-            position="-0.25 0 0"
-            rotation="0 0 90"
-            width="0.9"
-            height="0.5"
-            material="shader: flat; transparent: true">
-          </a-video>
-        </a-entity>
+const target = document.querySelector('[mindar-image-target]');
+if (target) {
+target.addEventListener('targetFound', function () {
+setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
+hideScanning();
+playExtrusionVideo();
+});
+target.addEventListener('targetLost', function () {
+setStatus('AR Visitenkarte von Heiman Mustafa');
+showScanning();
+});
+}
 
-        <a-entity id="youtube-btn-1" position="-0.35 -0.32 0.02" rotation="0 0 -90">
-          <a-gltf-model
-            src="#youtubeModel"
-            scale="0.1125 0.1125 0.1125"
-            rotation="-90 0 0">
-          </a-gltf-model>
-          <a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-        </a-entity>
+window.addEventListener('error', function (e) {
+setStatus('Fehler: ' + (e.message || 'Unbekannt'));
+if (statusEl) statusEl.style.background = 'darkred';
+});
 
-        <a-entity position="0 -0.32 0.02" rotation="0 0 -90">
-          <a-gltf-model
-            src="#youtubeModel"
-            scale="0.1125 0.1125 0.1125"
-            rotation="-90 0 0">
-          </a-gltf-model>
-        </a-entity>
+setTimeout(function () {
+const video = document.querySelector('video');
+if (video) {
+video.style.display = 'block';
+video.style.opacity = '1';
+video.style.zIndex = '1';
+}
+}, 1000);
 
-        <a-entity position="0.35 -0.32 0.02" rotation="0 0 -90">
-          <a-gltf-model
-            src="#youtubeModel"
-            scale="0.1125 0.1125 0.1125"
-            rotation="-90 0 0">
-          </a-gltf-model>
-        </a-entity>
+// -----------------------------------------------------------------
+// Direktes Tap-Handling auf 3D-Objekte (statt A-Frame cursor).
+// -----------------------------------------------------------------
+function setupTapInteraction() {
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let interactiveObjects = [];
 
-        <!-- Phone: eigene wrapper-Entity mit id, damit sie im Script anvisiert werden kann -->
-        <a-entity id="phone-btn" position="-0.35 -0.62 0.02" rotation="0 0 -90">
-          <a-gltf-model
-            src="#phoneModel"
-            scale="0.1125 0.1125 0.1125"
-            rotation="-90 0 0">
-          </a-gltf-model>
-          <!-- unsichtbare, aber raycastbare, groessere Trefferflaeche fuer zuverlaessigeres Antippen -->
-          <a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-        </a-entity>
+function bind(id, action) {
+const el = document.getElementById(id);
+if (!el) return;
+el.object3D.userData.tapAction = action;
+interactiveObjects.push(el.object3D);
+}
 
-        <a-entity id="mail-btn" position="0 -0.62 0.02" rotation="0 0 -90">
-          <a-gltf-model
-            src="#mailModel"
-            scale="0.1125 0.1125 0.1125"
-            rotation="-90 0 0">
-          </a-gltf-model>
-          <a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-        </a-entity>
+bind('phone-btn', function () {
+window.location.href = 'tel:' + PHONE_NUMBER;
+});
 
-        <a-entity id="linkedin-btn" position="0.35 -0.62 0.02" rotation="0 0 -90">
-          <a-gltf-model
-            src="#linkedinModel"
-            scale="0.1125 0.1125 0.1125"
-            rotation="-90 0 0">
-          </a-gltf-model>
-          <a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-        </a-entity>
+bind('mail-btn', function () {
+const mailto = 'mailto:' + encodeURIComponent(EMAIL_ADDRESS) +
+'?subject=' + encodeURIComponent(EMAIL_SUBJECT) +
+'&body=' + encodeURIComponent(EMAIL_BODY);
+window.location.href = mailto;
+});
 
-      </a-entity>
-    </a-scene>
+bind('linkedin-btn', function () {
+window.open(LINKEDIN_URL, '_blank');
+});
 
-    <script>
-      (function () {
-        if (window.__arVisitenkarteInitialized) return;
-        window.__arVisitenkarteInitialized = true;
+bind('youtube-btn-1', function () {
+const anchor = document.getElementById('dispenser-video-anchor');
+const video = document.getElementById('dispenserVideo');
+if (anchor) anchor.setAttribute('visible', 'true');
+if (video) {
+video.currentTime = 0;
+video.play().catch(function () {});
+}
+});
 
-        const statusEl = document.getElementById('status');
-        const scanningOverlay = document.getElementById('scanning-overlay');
+function handleTap(clientX, clientY) {
+const canvas = sceneEl.canvas;
+const camera = sceneEl.camera;
+if (!canvas || !camera) return;
+const rect = canvas.getBoundingClientRect();
+pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+raycaster.setFromCamera(pointer, camera);
+const intersects = raycaster.intersectObjects(interactiveObjects, true);
+if (intersects.length > 0) {
+let hit = intersects.object;
+while (hit && !hit.userData.tapAction) {
+hit = hit.parent;
+}
+if (hit && hit.userData.tapAction) {
+hit.userData.tapAction();
+return true;
+}
+}
+return false;
+}
 
-        // ---- HIER ANPASSEN: eigene Kontaktdaten ----
-        const PHONE_NUMBER = '+4917641996982';
-        const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education';
-        const EMAIL_SUBJECT = 'Praktikum Gestalter für immersive Medien: Terminabsprache für ein Vorstellungsgespräch';
-        const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\n\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
-        const LINKEDIN_URL = 'https://www.linkedin.com/in/heiman-mustafa';
-        // ---------------------------------------------
+const canvas = sceneEl.canvas;
+if (!canvas) return;
 
-        function setStatus(text, isSuccess) {
-          if (!statusEl) return;
-          statusEl.textContent = text;
-          statusEl.style.background = isSuccess
-            ? 'rgba(0, 140, 0, 0.88)'
-            : 'rgba(0, 0, 0, 0.78)';
-        }
+canvas.addEventListener('touchend', function (e) {
+if (e.changedTouches && e.changedTouches.length > 0) {
+const t = e.changedTouches;
+const opened = handleTap(t.clientX, t.clientY);
+if (opened) e.preventDefault();
+}
+}, { passive: false });
 
-        function hideScanning() {
-          if (scanningOverlay) scanningOverlay.classList.add('hidden');
-        }
-
-        function showScanning() {
-          if (scanningOverlay) scanningOverlay.classList.remove('hidden');
-        }
-
-        setStatus('AR Visitenkarte von Heiman Mustafa');
-        showScanning();
-
-        const sceneEl = document.querySelector('a-scene');
-        if (!sceneEl) return;
-
-        sceneEl.addEventListener('loaded', function () {
-          setStatus('AR Visitenkarte von Heiman Mustafa');
-          showScanning();
-          setupTapInteraction();
-          playExtrusionVideo();
-        });
-
-        // Fallback fuers Autoplay des Extrusion-Videos: manche Browser
-        // ignorieren das autoplay-Attribut, falls das Video beim Laden
-        // noch nicht aktiv war. Ungefaehrlich, da das Video gemuted ist.
-        function playExtrusionVideo() {
-          const video = document.getElementById('extrusionVideo');
-          if (video) {
-            video.play().catch(function () {});
-          }
-        }
-
-        const target = document.querySelector('[mindar-image-target]');
-        if (target) {
-          target.addEventListener('targetFound', function () {
-            setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
-            hideScanning();
-            playExtrusionVideo();
-          });
-
-          target.addEventListener('targetLost', function () {
-            setStatus('AR Visitenkarte von Heiman Mustafa');
-            showScanning();
-          });
-        }
-
-        window.addEventListener('error', function (e) {
-          setStatus('Fehler: ' + (e.message || 'Unbekannt'));
-          if (statusEl) statusEl.style.background = 'darkred';
-        });
-
-        setTimeout(function () {
-          const video = document.querySelector('video');
-          if (video) {
-            video.style.display = 'block';
-            video.style.opacity = '1';
-            video.style.zIndex = '1';
-          }
-        }, 1000);
-
-        // -----------------------------------------------------------------
-        // Direktes Tap-Handling auf 3D-Objekte (statt A-Frame cursor).
-        // A-Frames eingebauter cursor="rayOrigin: mouse" ist auf Touch-
-        // geraeten nachweislich unzuverlaessig / verzoegert (bekannte
-        // A-Frame-Issues). Diese Verzoegerung reicht aus, damit iOS
-        // Safari window.open()/tel:/mailto: als "nicht direkt vom
-        // Nutzer ausgeloest" wertet und stillschweigend blockiert.
-        // Deshalb raycasten wir hier manuell, synchron im echten
-        // touchend-Event.
-        // -----------------------------------------------------------------
-        function setupTapInteraction() {
-          const raycaster = new THREE.Raycaster();
-          const pointer = new THREE.Vector2();
-          let interactiveObjects = [];
-
-          function bind(id, action) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.object3D.userData.tapAction = action;
-            interactiveObjects.push(el.object3D);
-          }
-
-          bind('phone-btn', function () {
-            window.location.href = 'tel:' + PHONE_NUMBER;
-          });
-
-          bind('mail-btn', function () {
-            const mailto = 'mailto:' + encodeURIComponent(EMAIL_ADDRESS) +
-              '?subject=' + encodeURIComponent(EMAIL_SUBJECT) +
-              '&body=' + encodeURIComponent(EMAIL_BODY);
-            window.location.href = mailto;
-          });
-
-          bind('linkedin-btn', function () {
-            window.open(LINKEDIN_URL, '_blank');
-          });
-
-          bind('youtube-btn-1', function () {
-            const anchor = document.getElementById('dispenser-video-anchor');
-            const video = document.getElementById('dispenserVideo');
-            if (anchor) anchor.setAttribute('visible', 'true');
-            if (video) {
-              video.currentTime = 0;
-              video.play().catch(function () {
-                // Falls play() hier ausnahmsweise blockiert wird: das
-                // Video ist gemuted, ein zweiter Tap loest es zuverlaessig aus.
-              });
-            }
-          });
-
-          function handleTap(clientX, clientY) {
-            const canvas = sceneEl.canvas;
-            const camera = sceneEl.camera;
-            if (!canvas || !camera) return;
-
-            const rect = canvas.getBoundingClientRect();
-            pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-            pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-
-            raycaster.setFromCamera(pointer, camera);
-            const intersects = raycaster.intersectObjects(interactiveObjects, true);
-
-            if (intersects.length > 0) {
-              let hit = intersects[0].object;
-              while (hit && !hit.userData.tapAction) {
-                hit = hit.parent;
-              }
-              if (hit && hit.userData.tapAction) {
-                hit.userData.tapAction();
-                return true;
-              }
-            }
-            return false;
-          }
-
-          const canvas = sceneEl.canvas;
-          if (!canvas) return;
-
-          // touchend: synchron, direkter Nutzer-Gestus -> iOS-sicher
-          canvas.addEventListener('touchend', function (e) {
-            if (e.changedTouches && e.changedTouches.length > 0) {
-              const t = e.changedTouches[0];
-              const opened = handleTap(t.clientX, t.clientY);
-              if (opened) e.preventDefault(); // verhindert doppeltes Ausloesen via emuliertem click
-            }
-          }, { passive: false });
-
-          // click: fuer Desktop-Browser (Maus)
-          canvas.addEventListener('click', function (e) {
-            handleTap(e.clientX, e.clientY);
-          });
-        }
-      })();
-    </script>
-  </body>
+canvas.addEventListener('click', function (e) {
+handleTap(e.clientX, e.clientY);
+});
+}
+})();
+</script>
+</body>
 </html>
