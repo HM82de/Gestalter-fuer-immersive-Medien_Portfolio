@@ -175,8 +175,8 @@ preload="auto">
 
 <a-entity id="main-target" mindar-image-target="targetIndex: 0">
 
-<!-- Dispenser-Video: Abstand auf y = 0.855 erhöht, Breite auf 1.0 vergrößert, Höhe auf 0.56 angepasst -->
-<a-entity id="dispenser-video-anchor" position="0 0.855 0.02" rotation="30 0 0" visible="false">
+<!-- Dispenser-Video: Abstand auf y = 0.855 erhoeht, Breite auf 1.0 vergroessert, Hoehe auf 0.56 angepasst. Mit Einblend-Animation (Scale) -->
+<a-entity id="dispenser-video-anchor" position="0 0.855 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 800; easing: easeOutBack; startEvents: showVideo">
 <a-video
 src="#dispenserVideo"
 position="0 0.28 0"
@@ -186,8 +186,8 @@ material="shader: flat; transparent: true">
 </a-video>
 </a-entity>
 
-<!-- Extrusion-Video: positioniert auf x = -0.58 -->
-<a-entity id="extrusion-video-anchor" position="-0.58 0 0.02" rotation="0 30 0" visible="false">
+<!-- Extrusion-Video: positioniert auf x = -0.58, Hoehe 1.55, Breite 0.86 -->
+<a-entity id="extrusion-video-anchor" position="-0.58 0 0.02" rotation="0 30 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 800; easing: easeOutBack; startEvents: showVideo">
 <a-video
 src="#extrusionVideo"
 position="-0.43 0 0"
@@ -354,22 +354,28 @@ bind('linkedin-btn', function () {
 window.open(LINKEDIN_URL, '_blank');
 });
 
-// Erster YouTube-Button (Links): startet Dispenser-Video
+// Erster YouTube-Button (Links): startet Dispenser-Video mit Einblend-Animation
 bind('youtube-btn-1', function () {
 const anchor = document.getElementById('dispenser-video-anchor');
 const video = document.getElementById('dispenserVideo');
-if (anchor) anchor.setAttribute('visible', 'true');
+if (anchor) {
+anchor.setAttribute('visible', 'true');
+anchor.emit('showVideo');
+}
 if (video) {
 video.currentTime = 0;
 video.play().catch(function () {});
 }
 });
 
-// Zweiter YouTube-Button (Mitte): blendet das Extrusion-Video ein und startet es
+// Zweiter YouTube-Button (Mitte): blendet das Extrusion-Video mit Einblend-Animation ein und startet es
 bind('youtube-btn-2', function () {
 const anchor = document.getElementById('extrusion-video-anchor');
 const video = document.getElementById('extrusionVideo');
-if (anchor) anchor.setAttribute('visible', 'true');
+if (anchor) {
+anchor.setAttribute('visible', 'true');
+anchor.emit('showVideo');
+}
 if (video) {
 video.currentTime = 0;
 video.play().catch(function () {});
