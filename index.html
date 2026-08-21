@@ -135,36 +135,6 @@
         85% { opacity: 1; }
         100% { top: 100%; opacity: 0; }
       }
-
-      /* --- NEU: HTML-Overlay-Button fuer LinkedIn ---
-         iOS Safari blockiert window.open() zuverlaessig NUR,
-         wenn es direkt aus einem echten DOM-Touch/Click-Event kommt.
-         A-Frames Cursor-Klick (Raycasting im Render-Loop) zaehlt
-         Safari nicht als "direkte" Nutzeraktion -> Popup wird
-         stillschweigend blockiert. Deshalb ein echtes HTML-Element. */
-      #linkedin-overlay-btn {
-        position: fixed;
-        bottom: 28px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 99999;
-        background: #0a66c2;
-        color: white;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 15px;
-        font-weight: 600;
-        padding: 12px 22px;
-        border-radius: 999px;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.35);
-        display: none;
-        align-items: center;
-        gap: 8px;
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      #linkedin-overlay-btn.visible {
-        display: flex;
-      }
     </style>
   </head>
 
@@ -181,9 +151,6 @@
       </div>
     </div>
 
-    <!-- NEU: zuverlaessiger LinkedIn-Button, erscheint sobald Karte erkannt wird -->
-    <button id="linkedin-overlay-btn" type="button">LinkedIn-Profil öffnen</button>
-
     <a-scene
       mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets.mind; autoStart: true; uiScanning: no; uiLoading: no;"
       color-space="sRGB"
@@ -199,9 +166,7 @@
         <a-asset-item id="youtubeModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Youtube.glb"></a-asset-item>
       </a-assets>
 
-      <a-camera position="0 0 0" look-controls="enabled: false">
-        <a-entity cursor="fuse: false; rayOrigin: mouse"></a-entity>
-      </a-camera>
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
 
@@ -235,27 +200,33 @@
           </a-gltf-model>
         </a-entity>
 
-        <a-gltf-model
-          src="#phoneModel"
-          position="-0.35 -0.62 0.02"
-          scale="0.1125 0.1125 0.1125"
-          rotation="-90 0 0">
-        </a-gltf-model>
+        <!-- Phone: eigene wrapper-Entity mit id, damit sie im Script anvisiert werden kann -->
+        <a-entity id="phone-btn" position="-0.35 -0.62 0.02" rotation="0 0 -90">
+          <a-gltf-model
+            src="#phoneModel"
+            scale="0.1125 0.1125 0.1125"
+            rotation="-90 0 0">
+          </a-gltf-model>
+          <!-- unsichtbare, aber raycastbare, groessere Trefferflaeche fuer zuverlaessigeres Antippen -->
+          <a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
+        </a-entity>
 
-        <a-entity position="0 -0.62 0.02" rotation="0 0 -90">
+        <a-entity id="mail-btn" position="0 -0.62 0.02" rotation="0 0 -90">
           <a-gltf-model
             src="#mailModel"
             scale="0.1125 0.1125 0.1125"
             rotation="-90 0 0">
           </a-gltf-model>
+          <a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
         </a-entity>
 
-        <a-entity id="linkedin-btn" position="0.35 -0.62 0.02" rotation="0 0 -90" class="clickable">
+        <a-entity id="linkedin-btn" position="0.35 -0.62 0.02" rotation="0 0 -90">
           <a-gltf-model
             src="#linkedinModel"
             scale="0.1125 0.1125 0.1125"
             rotation="-90 0 0">
           </a-gltf-model>
+          <a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
         </a-entity>
 
       </a-entity>
@@ -268,8 +239,14 @@
 
         const statusEl = document.getElementById('status');
         const scanningOverlay = document.getElementById('scanning-overlay');
-        const linkedinOverlayBtn = document.getElementById('linkedin-overlay-btn');
+
+        // ---- HIER ANPASSEN: eigene Kontaktdaten ----
+        const PHONE_NUMBER = '+4917641996982';           // z.B. '+491701234567'
+        const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education';  // Empfaenger
+        const EMAIL_SUBJECT = 'Praktikum GiM: Terminabsprache zum Vorstellungsgespräch';
+        const EMAIL_BODY = 'Hallo Heiman Mustafa,\n\n Bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
         const LINKEDIN_URL = 'https://www.linkedin.com/in/heiman-mustafa';
+        // ---------------------------------------------
 
         function setStatus(text, isSuccess) {
           if (!statusEl) return;
@@ -296,6 +273,7 @@
         sceneEl.addEventListener('loaded', function () {
           setStatus('AR Visitenkarte von Heiman Mustafa');
           showScanning();
+          setupTapInteraction();
         });
 
         const target = document.querySelector('[mindar-image-target]');
@@ -303,32 +281,11 @@
           target.addEventListener('targetFound', function () {
             setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
             hideScanning();
-            if (linkedinOverlayBtn) linkedinOverlayBtn.classList.add('visible');
           });
 
           target.addEventListener('targetLost', function () {
             setStatus('AR Visitenkarte von Heiman Mustafa');
             showScanning();
-            if (linkedinOverlayBtn) linkedinOverlayBtn.classList.remove('visible');
-          });
-        }
-
-        // NEU: echter DOM-Button statt 3D-Objekt-Klick.
-        // click funktioniert auf iOS Safari zuverlaessig, weil es
-        // direkt aus dem nativen Touch-Event kommt (kein Popup-Block).
-        if (linkedinOverlayBtn) {
-          linkedinOverlayBtn.addEventListener('click', function () {
-            window.open(LINKEDIN_URL, '_blank');
-          });
-        }
-
-        // 3D-Modell bleibt zusaetzlich klickbar (funktioniert z.B. auf
-        // Desktop-Browsern zuverlaessig, auf iOS ist der Overlay-Button
-        // ausschlaggebend).
-        const linkedinBtn3D = document.querySelector('#linkedin-btn');
-        if (linkedinBtn3D) {
-          linkedinBtn3D.addEventListener('click', function () {
-            window.open(LINKEDIN_URL, '_blank');
           });
         }
 
@@ -345,6 +302,86 @@
             video.style.zIndex = '1';
           }
         }, 1000);
+
+        // -----------------------------------------------------------------
+        // Direktes Tap-Handling auf 3D-Objekte (statt A-Frame cursor).
+        // A-Frames eingebauter cursor="rayOrigin: mouse" ist auf Touch-
+        // geraeten nachweislich unzuverlaessig / verzoegert (bekannte
+        // A-Frame-Issues). Diese Verzoegerung reicht aus, damit iOS
+        // Safari window.open()/tel:/mailto: als "nicht direkt vom
+        // Nutzer ausgeloest" wertet und stillschweigend blockiert.
+        // Deshalb raycasten wir hier manuell, synchron im echten
+        // touchend-Event.
+        // -----------------------------------------------------------------
+        function setupTapInteraction() {
+          const raycaster = new THREE.Raycaster();
+          const pointer = new THREE.Vector2();
+          let interactiveObjects = [];
+
+          function bind(id, action) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.object3D.userData.tapAction = action;
+            interactiveObjects.push(el.object3D);
+          }
+
+          bind('phone-btn', function () {
+            window.location.href = 'tel:' + PHONE_NUMBER;
+          });
+
+          bind('mail-btn', function () {
+            const mailto = 'mailto:' + encodeURIComponent(EMAIL_ADDRESS) +
+              '?subject=' + encodeURIComponent(EMAIL_SUBJECT) +
+              '&body=' + encodeURIComponent(EMAIL_BODY);
+            window.location.href = mailto;
+          });
+
+          bind('linkedin-btn', function () {
+            window.open(LINKEDIN_URL, '_blank');
+          });
+
+          function handleTap(clientX, clientY) {
+            const canvas = sceneEl.canvas;
+            const camera = sceneEl.camera;
+            if (!canvas || !camera) return;
+
+            const rect = canvas.getBoundingClientRect();
+            pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(pointer, camera);
+            const intersects = raycaster.intersectObjects(interactiveObjects, true);
+
+            if (intersects.length > 0) {
+              let hit = intersects[0].object;
+              while (hit && !hit.userData.tapAction) {
+                hit = hit.parent;
+              }
+              if (hit && hit.userData.tapAction) {
+                hit.userData.tapAction();
+                return true;
+              }
+            }
+            return false;
+          }
+
+          const canvas = sceneEl.canvas;
+          if (!canvas) return;
+
+          // touchend: synchron, direkter Nutzer-Gestus -> iOS-sicher
+          canvas.addEventListener('touchend', function (e) {
+            if (e.changedTouches && e.changedTouches.length > 0) {
+              const t = e.changedTouches[0];
+              const opened = handleTap(t.clientX, t.clientY);
+              if (opened) e.preventDefault(); // verhindert doppeltes Ausloesen via emuliertem click
+            }
+          }, { passive: false });
+
+          // click: fuer Desktop-Browser (Maus)
+          canvas.addEventListener('click', function (e) {
+            handleTap(e.clientX, e.clientY);
+          });
+        }
       })();
     </script>
   </body>
