@@ -176,7 +176,7 @@ preload="auto">
 
 <a-entity mindar-image-target="targetIndex: 0">
 
-<!-- Dispenser-Video -->
+<!-- Dispenser-Video: um seine halbe Höhe (0.25) nach oben versetzt -->
 <a-entity id="dispenser-video-anchor" position="0 0.8 0.02" rotation="30 0 0" visible="false">
 <a-video
 src="#dispenserVideo"
@@ -187,7 +187,7 @@ material="shader: flat; transparent: true">
 </a-video>
 </a-entity>
 
-<!-- Extrusion-Video: Nahtlos an der linken Kartenkante platziert und vollskaliert -->
+<!-- Extrusion-Video: Nahtlos an der linken Kartenkante (x = -0.5) platziert und vollskaliert -->
 <a-entity id="extrusion-video-anchor" position="-0.5 0 0.02" rotation="0 30 0">
 <a-video
 src="#extrusionVideo"
@@ -266,7 +266,7 @@ const scanningOverlay = document.getElementById('scanning-overlay');
 const PHONE_NUMBER = '+4917641996982';
 const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education';
 const EMAIL_SUBJECT = 'Praktikum Gestalter für immersive Medien: Terminabsprache für ein Vorstellungsgespräch';
-const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\\n\\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
+const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\n\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
 const LINKEDIN_URL = 'https://www.linkedin.com/in/heiman-mustafa';
 // ---------------------------------------------
 
