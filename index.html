@@ -139,7 +139,7 @@
   </head>
 
   <body>
-    <div id="status">Starte AR-Visitenkarte...</div>
+    <div id="status">AR Visitenkarte von Heiman Mustafa</div>
 
     <div id="scanning-overlay">
       <div class="scan-frame">
@@ -172,14 +172,12 @@
 
       <a-entity mindar-image-target="targetIndex: 0">
 
-        <!-- Roter Würfel (50% kleiner, kein Link mehr) -->
         <a-box
           color="#ff2222"
           position="0 0 0"
           scale="0.175 0.175 0.175">
         </a-box>
 
-        <!-- Obere Reihe: 3× YouTube -->
         <a-entity position="-0.35 -0.32 0.02" rotation="0 0 -90">
           <a-gltf-model
             src="#youtubeModel"
@@ -204,7 +202,6 @@
           </a-gltf-model>
         </a-entity>
 
-        <!-- Untere Reihe: Phone, Mail, LinkedIn -->
         <a-gltf-model
           src="#phoneModel"
           position="-0.35 -0.62 0.02"
@@ -220,7 +217,6 @@
           </a-gltf-model>
         </a-entity>
 
-        <!-- LinkedIn.glb – klickbar → Profil öffnen -->
         <a-entity id="linkedin-btn" position="0.35 -0.62 0.02" rotation="0 0 -90" class="clickable">
           <a-gltf-model
             src="#linkedinModel"
@@ -256,14 +252,14 @@
           if (scanningOverlay) scanningOverlay.classList.remove('hidden');
         }
 
-        setStatus('Kamera auf Visitenkarte richten');
+        setStatus('AR Visitenkarte von Heiman Mustafa');
         showScanning();
 
         const sceneEl = document.querySelector('a-scene');
         if (!sceneEl) return;
 
         sceneEl.addEventListener('loaded', function () {
-          setStatus('Kamera auf Visitenkarte richten');
+          setStatus('AR Visitenkarte von Heiman Mustafa');
           showScanning();
         });
 
@@ -275,12 +271,11 @@
           });
 
           target.addEventListener('targetLost', function () {
-            setStatus('Kamera auf Visitenkarte richten');
+            setStatus('AR Visitenkarte von Heiman Mustafa');
             showScanning();
           });
         }
 
-        // Tap auf LinkedIn.glb → Profil öffnen
         const linkedinBtn = document.querySelector('#linkedin-btn');
         if (linkedinBtn) {
           linkedinBtn.addEventListener('click', function () {
