@@ -164,6 +164,22 @@
         <a-asset-item id="mailModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Mail.glb"></a-asset-item>
         <a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
         <a-asset-item id="youtubeModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Youtube.glb"></a-asset-item>
+
+        <!-- Video-Element: muted + playsinline sind Pflicht, sonst blockiert
+             iOS Safari das automatische Abspielen komplett. loop sorgt fuer
+             die Dauerschleife. crossorigin wird benoetigt, damit die Video-
+             textur in WebGL genutzt werden darf. -->
+        <video
+          id="dispenserVideo"
+          src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_dispenser_v001.mp4"
+          autoplay
+          loop
+          muted
+          playsinline
+          webkit-playsinline="true"
+          crossorigin="anonymous"
+          preload="auto">
+        </video>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -175,6 +191,18 @@
           position="0 0 0"
           scale="0.175 0.175 0.175">
         </a-box>
+
+        <!-- Dispenser-Video: obere Kante der Karte.
+             width/height an das Seitenverhaeltnis deines Clips anpassen
+             (aktuell 16:9 angenommen). y-Wert ggf. nachjustieren, je
+             nachdem wie hoch/tief die Karte im Marker-Koordinatensystem ist. -->
+        <a-video
+          src="#dispenserVideo"
+          position="0 0.5 0.02"
+          width="0.9"
+          height="0.5"
+          material="shader: flat; transparent: true">
+        </a-video>
 
         <a-entity position="-0.35 -0.32 0.02" rotation="0 0 -90">
           <a-gltf-model
@@ -241,8 +269,8 @@
         const scanningOverlay = document.getElementById('scanning-overlay');
 
         // ---- HIER ANPASSEN: eigene Kontaktdaten ----
-        const PHONE_NUMBER = '+4917641996982';         
-        const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education'; 
+        const PHONE_NUMBER = '+4917641996982';
+        const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education';
         const EMAIL_SUBJECT = 'Praktikum Gestalter für immersive Medien: Terminabsprache für ein Vorstellungsgespräch';
         const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\n\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
         const LINKEDIN_URL = 'https://www.linkedin.com/in/heiman-mustafa';
@@ -274,13 +302,30 @@
           setStatus('AR Visitenkarte von Heiman Mustafa');
           showScanning();
           setupTapInteraction();
+          playDispenserVideo();
         });
+
+        // Fallback fuers Autoplay: manche Browser ignorieren das
+        // autoplay-Attribut, wenn das Video z.B. beim Laden noch nicht
+        // sichtbar/aktiv war. play() erneut anstossen ist ungefaehrlich,
+        // da das Video bereits muted ist (kein Popup-Block wie bei Ton).
+        function playDispenserVideo() {
+          const video = document.getElementById('dispenserVideo');
+          if (video) {
+            video.play().catch(function () {
+              // Wird ignoriert - typischerweise nur relevant, wenn der
+              // Browser noch keine Nutzerinteraktion registriert hat.
+              // Da das Video muted ist, holt targetFound es unten nach.
+            });
+          }
+        }
 
         const target = document.querySelector('[mindar-image-target]');
         if (target) {
           target.addEventListener('targetFound', function () {
             setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
             hideScanning();
+            playDispenserVideo();
           });
 
           target.addEventListener('targetLost', function () {
