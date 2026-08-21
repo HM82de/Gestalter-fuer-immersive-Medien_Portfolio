@@ -177,6 +177,8 @@ preload="auto">
 
 <!-- Dispenser-Video: Abstand auf y = 0.855 erhoeht, Breite auf 1.0 vergroessert, Hoehe auf 0.56 angepasst. Mit Einblend-Animation (Scale) -->
 <a-entity id="dispenser-video-anchor" position="0 0.855 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
+<!-- Konturrahmen (weiß, leicht groesser und knapp hinter dem Video platziert) -->
+<a-plane position="0 0.28 -0.001" width="1.04" height="0.60" color="#FFFFFF" material="shader: flat"></a-plane>
 <a-video
 src="#dispenserVideo"
 position="0 0.28 0"
@@ -188,6 +190,8 @@ material="shader: flat; transparent: true">
 
 <!-- Extrusion-Video: positioniert auf x = -0.58, Hoehe 1.55, Breite 0.86 -->
 <a-entity id="extrusion-video-anchor" position="-0.58 0 0.02" rotation="0 30 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
+<!-- Konturrahmen (weiß, leicht groesser und knapp hinter dem Video platziert) -->
+<a-plane position="-0.43 0 -0.001" rotation="0 0 90" width="1.59" height="0.90" color="#FFFFFF" material="shader: flat"></a-plane>
 <a-video
 src="#extrusionVideo"
 position="-0.43 0 0"
