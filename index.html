@@ -213,7 +213,7 @@
              (y = 0.8, siehe vorherige Berechnung). Das Video selbst wird
              darin um seine halbe Hoehe (0.25) nach oben versetzt, sodass
              seine untere Kante exakt auf dem Drehpunkt liegt. -->
-        <a-entity id="dispenser-video-anchor" position="0 0.8 0.02" rotation="45 0 0" visible="false">
+        <a-entity id="dispenser-video-anchor" position="0 0.8 0.02" rotation="30 0 0" visible="false">
           <a-video
             src="#dispenserVideo"
             position="0 0.25 0"
@@ -233,10 +233,15 @@
              Dispenser-Video, nur um 90 Grad gedreht gedacht). width/height
              sind gegenueber dem ersten Video vertauscht, damit das Panel
              hochkant entlang der Kante steht statt querformatig. -->
-        <a-entity id="extrusion-video-anchor" position="-0.56 0 0.02" rotation="0 45 0">
+        <a-entity id="extrusion-video-anchor" position="-0.56 0 0.02" rotation="0 30 0">
+          <!-- rotation="0 0 90" dreht das Video-Bild selbst um 90 Grad,
+               damit es hochkant statt seitlich liegend erscheint. Falls
+               die Drehrichtung falsch ist (spiegelverkehrt/falsch rum):
+               auf "0 0 -90" aendern. -->
           <a-video
             src="#extrusionVideo"
             position="-0.25 0 0"
+            rotation="0 0 90"
             width="0.5"
             height="0.9"
             material="shader: flat; transparent: true">
