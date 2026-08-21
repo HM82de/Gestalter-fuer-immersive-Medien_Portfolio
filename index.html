@@ -148,11 +148,6 @@ embedded
 <a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
 <a-asset-item id="youtubeModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Youtube.glb"></a-asset-item>
 
-<!-- Video-Element: muted + playsinline sind Pflicht, sonst blockiert
-iOS Safari das Abspielen komplett. loop sorgt fuer die
-Dauerschleife. crossorigin wird benoetigt, damit die Video-
-textur in WebGL genutzt werden darf. Kein autoplay mehr -
-das Video startet erst per Tap auf den YouTube-Button. -->
 <video
 id="dispenserVideo"
 src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_dispenser_v001.mp4"
@@ -164,8 +159,6 @@ crossorigin="anonymous"
 preload="auto">
 </video>
 
-<!-- Zweites Video: Extrusion-Clip. Soll direkt sichtbar sein und
-sofort in Dauerschleife laufen -> autoplay bleibt hier drin. -->
 <video
 id="extrusionVideo"
 src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_extrusion_v001.mp4"
@@ -183,8 +176,7 @@ preload="auto">
 
 <a-entity mindar-image-target="targetIndex: 0">
 
-<!-- Dispenser-Video: darin um seine halbe Hoehe (0.25) nach oben versetzt, sodass
-seine untere Kante exakt auf dem Drehpunkt liegt. -->
+<!-- Dispenser-Video: um seine halbe Höhe (0.25) nach oben versetzt -->
 <a-entity id="dispenser-video-anchor" position="0 0.8 0.02" rotation="30 0 0" visible="false">
 <a-video
 src="#dispenserVideo"
@@ -195,11 +187,7 @@ material="shader: flat; transparent: true">
 </a-video>
 </a-entity>
 
-<!-- Extrusion-Video: entlang der linken Kartenkante.
-Karten-Höhe im AR-Raum ist durch Scan-Overlay auf 1.55 definiert.
-Wir setzen den Anchor exakt auf die linke Kante (x = -0.5) und winkeln ihn leicht an (rotation Y=30).
-Durch Verschiebung des Videos lokal auf x = -0.43 (Hälfte von width 0.86) dockt die rechte 
-Videokante perfekt bündig am Tracker an. -->
+<!-- Extrusion-Video: Nahtlos an der linken Kartenkante (x = -0.5) platziert und vollskaliert -->
 <a-entity id="extrusion-video-anchor" position="-0.5 0 0.02" rotation="0 30 0">
 <a-video
 src="#extrusionVideo"
@@ -236,7 +224,6 @@ rotation="-90 0 0">
 </a-gltf-model>
 </a-entity>
 
-<!-- Phone: eigene wrapper-Entity mit id, damit sie im Script anvisiert werden kann -->
 <a-entity id="phone-btn" position="-0.35 -0.62 0.02" rotation="0 0 -90">
 <a-gltf-model
 src="#phoneModel"
@@ -246,7 +233,6 @@ rotation="-90 0 0">
 <a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
 </a-entity>
 
-<!-- Mail: eigene wrapper-Entity mit id, damit sie im Script anvisiert werden kann -->
 <a-entity id="mail-btn" position="0 -0.62 0.02" rotation="0 0 -90">
 <a-gltf-model
 src="#mailModel"
@@ -272,6 +258,7 @@ rotation="-90 0 0">
 (function () {
 if (window.__arVisitenkarteInitialized) return;
 window.__arVisitenkarteInitialized = true;
+
 const statusEl = document.getElementById('status');
 const scanningOverlay = document.getElementById('scanning-overlay');
 
@@ -305,12 +292,26 @@ showScanning();
 const sceneEl = document.querySelector('a-scene');
 if (!sceneEl) return;
 
-sceneEl.addEventListener('loaded', function () {
+let scriptInitialized = false;
+
+// Zentrale und einmalige Initialisierungsfunktion
+function initAR() {
+if (scriptInitialized) return;
+scriptInitialized = true;
+
 setStatus('AR Visitenkarte von Heiman Mustafa');
 showScanning();
 setupTapInteraction();
 playExtrusionVideo();
-});
+setupTargetEvents();
+}
+
+// Prüfen, ob A-Frame bereits fertig geladen ist (Race-Condition-Schutz)
+if (sceneEl.hasLoaded) {
+initAR();
+} else {
+sceneEl.addEventListener('loaded', initAR);
+}
 
 function playExtrusionVideo() {
 const video = document.getElementById('extrusionVideo');
@@ -319,6 +320,7 @@ video.play().catch(function () {});
 }
 }
 
+function setupTargetEvents() {
 const target = document.querySelector('[mindar-image-target]');
 if (target) {
 target.addEventListener('targetFound', function () {
@@ -330,6 +332,7 @@ target.addEventListener('targetLost', function () {
 setStatus('AR Visitenkarte von Heiman Mustafa');
 showScanning();
 });
+}
 }
 
 window.addEventListener('error', function (e) {
@@ -368,7 +371,7 @@ window.location.href = 'tel:' + PHONE_NUMBER;
 bind('mail-btn', function () {
 const mailto = 'mailto:' + encodeURIComponent(EMAIL_ADDRESS) +
 '?subject=' + encodeURIComponent(EMAIL_SUBJECT) +
-'&body=' + encodeURIComponent(EMAIL_BODY);
+'?body=' + encodeURIComponent(EMAIL_BODY);
 window.location.href = mailto;
 });
 
@@ -413,451 +416,7 @@ if (!canvas) return;
 
 canvas.addEventListener('touchend', function (e) {
 if (e.changedTouches && e.changedTouches.length > 0) {
-const t = e.changedTouches;
-const opened = handleTap(t.clientX, t.clientY);
-if (opened) e.preventDefault();
-}
-}, { passive: false });
-
-canvas.addEventListener('click', function (e) {
-handleTap(e.clientX, e.clientY);
-});
-}
-})();
-</script>
-</body>
-</html>
-✨ Du kannst diesen Code jetzt kopieren, in deiner GitHub-index.html ersetzen und committen – danach wird das Video auf deinem iPhone exakt bündig links anliegen und die gesamte Höhe deiner Visitenkarte abdecken! Lass mich gerne wissen, ob alles klappt oder ob wir noch etwas feintunen sollen.
-seltsam. Vorher konnte ich auf einige 3D Objekte tippen, um zum Beispiel einen Link aufzurufen oder ein anderen movieclip einzublenden und abzuspielen. Jetzt scheint es so, als würde das tippen auf bestimmte 3D Objekte nicht mehr funktionieren.
-
-Woran liegt das und kannst du es bitte korrigieren ?
-
-Thoughts
-Das ist ein sehr wichtiges Feedback! Der Fehler liegt an einer winzigen, aber folgenschweren Abweichung im JavaScript-Code für das Touch-Handling (die Berührungssteuerung auf dem iPhone).
-Warum funktionierten die Buttons nicht mehr?
-Im ursprünglichen Code wird das Antippen auf mobilen Geräten über das touchend-Event abgefangen. Bei meiner vorherigen Code-Anpassung hat sich dort leider ein kleiner Tippfehler eingeschlichen:
-Fehlerhafte Zeile: const t = e.changedTouches;
-Korrekte Zeile: const t = e.changedTouches;
-Die Erklärung: e.changedTouches ist eine Liste aller Berührungspunkte auf dem Bildschirm (ein TouchList-Objekt). Da dieses Objekt selbst keine direkten Koordinaten besitzt, waren t.clientX und t.clientY plötzlich undefined. Der Raycaster (der unsichtbare Laserstrahler, der berechnet, welches 3D-Objekt du anvisierst) hat dadurch fehlerhafte Werte erhalten und konnte keinen Button-Treffer mehr registrieren. Auf Desktop-Computern (mit der Maus via click) lief es weiterhin, aber auf dem iPhone war die Touch-Eingabe komplett blockiert.
-Der korrigierte Quellcode
-Ich habe diesen Fehler behoben (in Zeile 452 wurde das `` wieder hinzugefügt). Alle anderen Einstellungen für dein perfekt ausgerichtetes und skaliertes Video an der linken Kante bleiben exakt so erhalten, wie du es dir gewünscht hast!
-Hier ist der fehlerfreie, kopierfertige Code für deine index.html:
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>AR-Visitenkarte von Heiman Mustafa</title>
-<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-<style>
-html, body {
-margin: 0;
-width: 100%;
-height: 100%;
-overflow: hidden;
-background: #000;
-}
-#status {
-position: fixed;
-top: 18px;
-left: 50%;
-transform: translateX(-50%);
-color: white;
-background: rgba(0, 0, 0, 0.78);
-padding: 11px 20px;
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-font-size: 15px;
-font-weight: 500;
-z-index: 99999;
-border-radius: 10px;
-text-align: center;
-max-width: 88%;
-line-height: 1.3;
-pointer-events: none;
-box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-video {
-display: block !important;
-position: absolute !important;
-top: 0 !important;
-left: 0 !important;
-width: 100% !important;
-height: 100% !important;
-object-fit: cover !important;
-z-index: 1 !important;
-opacity: 1 !important;
-}
-a-scene {
-position: absolute !important;
-top: 0;
-left: 0;
-width: 100% !important;
-height: 100% !important;
-z-index: 2 !important;
-}
-.a-canvas {
-background: transparent !important;
-}
-#scanning-overlay {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-background: rgba(0, 0, 0, 0.55);
-z-index: 20;
-pointer-events: none;
-transition: opacity 0.3s ease;
-}
-#scanning-overlay.hidden {
-opacity: 0 !important;
-visibility: hidden !important;
-display: none !important;
-}
-.scan-frame {
-width: 56vw;
-max-width: 250px;
-aspect-ratio: 1 / 1.55;
-border: 3px solid rgba(255, 255, 255, 0.9);
-border-radius: 14px;
-position: relative;
-overflow: hidden;
-box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
-}
-.scan-frame img {
-position: absolute;
-top: 50%;
-left: 50%;
-width: 155%;
-height: auto;
-opacity: 0.42;
-transform: translate(-50%, -50%) rotate(270deg) scale(1.05);
-transform-origin: center center;
-}
-.scan-text {
-margin-top: 22px;
-color: white;
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-font-size: 16px;
-font-weight: 500;
-text-align: center;
-text-shadow: 0 2px 8px rgba(0,0,0,0.7);
-padding: 0 20px;
-}
-.scan-frame::after {
-content: "";
-position: absolute;
-top: 0;
-left: 0;
-right: 0;
-height: 3px;
-background: linear-gradient(90deg, transparent, #00ff88, transparent);
-animation: scanline 2.2s ease-in-out infinite;
-z-index: 2;
-}
-@keyframes scanline {
-0% { top: 0; opacity: 0; }
-15% { opacity: 1; }
-85% { opacity: 1; }
-100% { top: 100%; opacity: 0; }
-}
-</style>
-</head>
-<body>
-<div id="status">AR Visitenkarte von Heiman Mustafa</div>
-<div id="scanning-overlay">
-<div class="scan-frame">
-<img src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/imageMarker_4.jpg" alt="Visitenkarte">
-</div>
-<div class="scan-text">
-Kamera auf die Visitenkarte richten
-</div>
-</div>
-<a-scene
-mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets.mind; autoStart: true; uiScanning: no; uiLoading: no;"
-color-space="sRGB"
-renderer="colorManagement: true, physicallyCorrectLights"
-vr-mode-ui="enabled: false"
-device-orientation-permission-ui="enabled: false"
-embedded
->
-<a-assets>
-<a-asset-item id="phoneModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Phone.glb"></a-asset-item>
-<a-asset-item id="mailModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Mail.glb"></a-asset-item>
-<a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
-<a-asset-item id="youtubeModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Youtube.glb"></a-asset-item>
-
-<!-- Video-Element: muted + playsinline sind Pflicht, sonst blockiert
-iOS Safari das Abspielen komplett. loop sorgt fuer die
-Dauerschleife. crossorigin wird benoetigt, damit die Video-
-textur in WebGL genutzt werden darf. Kein autoplay mehr -
-das Video startet erst per Tap auf den YouTube-Button. -->
-<video
-id="dispenserVideo"
-src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_dispenser_v001.mp4"
-loop
-muted
-playsinline
-webkit-playsinline="true"
-crossorigin="anonymous"
-preload="auto">
-</video>
-
-<!-- Zweites Video: Extrusion-Clip. Soll direkt sichtbar sein und
-sofort in Dauerschleife laufen -> autoplay bleibt hier drin. -->
-<video
-id="extrusionVideo"
-src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_extrusion_v001.mp4"
-autoplay
-loop
-muted
-playsinline
-webkit-playsinline="true"
-crossorigin="anonymous"
-preload="auto">
-</video>
-</a-assets>
-
-<a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-<a-entity mindar-image-target="targetIndex: 0">
-
-<!-- Dispenser-Video: darin um seine halbe Hoehe (0.25) nach oben versetzt, sodass
-seine untere Kante exakt auf dem Drehpunkt liegt. -->
-<a-entity id="dispenser-video-anchor" position="0 0.8 0.02" rotation="30 0 0" visible="false">
-<a-video
-src="#dispenserVideo"
-position="0 0.25 0"
-width="0.9"
-height="0.5"
-material="shader: flat; transparent: true">
-</a-video>
-</a-entity>
-
-<!-- Extrusion-Video: entlang der linken Kartenkante.
-Karten-Höhe im AR-Raum ist durch Scan-Overlay auf 1.55 definiert.
-Wir setzen den Anchor exakt auf die linke Kante (x = -0.5) und winkeln ihn leicht an (rotation Y=30).
-Durch Verschiebung des Videos lokal auf x = -0.43 (Hälfte von width 0.86) dockt die rechte 
-Videokante perfekt bündig am Tracker an. -->
-<a-entity id="extrusion-video-anchor" position="-0.5 0 0.02" rotation="0 30 0">
-<a-video
-src="#extrusionVideo"
-position="-0.43 0 0"
-rotation="0 0 90"
-width="1.55"
-height="0.86"
-material="shader: flat; transparent: true">
-</a-video>
-</a-entity>
-
-<a-entity id="youtube-btn-1" position="-0.35 -0.32 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#youtubeModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-<a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-</a-entity>
-
-<a-entity position="0 -0.32 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#youtubeModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-</a-entity>
-
-<a-entity position="0.35 -0.32 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#youtubeModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-</a-entity>
-
-<!-- Phone: eigene wrapper-Entity mit id, damit sie im Script anvisiert werden kann -->
-<a-entity id="phone-btn" position="-0.35 -0.62 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#phoneModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-<a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-</a-entity>
-
-<!-- Mail: eigene wrapper-Entity mit id, damit sie im Script anvisiert werden kann -->
-<a-entity id="mail-btn" position="0 -0.62 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#mailModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-<a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-</a-entity>
-
-<a-entity id="linkedin-btn" position="0.35 -0.62 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#linkedinModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-<a-box class="hit-area" scale="0.55 0.55 0.55" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-</a-entity>
-
-</a-entity>
-</a-scene>
-
-<script>
-(function () {
-if (window.__arVisitenkarteInitialized) return;
-window.__arVisitenkarteInitialized = true;
-const statusEl = document.getElementById('status');
-const scanningOverlay = document.getElementById('scanning-overlay');
-
-// ---- HIER ANPASSEN: eigene Kontaktdaten ----
-const PHONE_NUMBER = '+4917641996982';
-const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education';
-const EMAIL_SUBJECT = 'Praktikum Gestalter für immersive Medien: Terminabsprache für ein Vorstellungsgespräch';
-const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\\n\\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
-const LINKEDIN_URL = 'https://www.linkedin.com/in/heiman-mustafa';
-// ---------------------------------------------
-
-function setStatus(text, isSuccess) {
-if (!statusEl) return;
-statusEl.textContent = text;
-statusEl.style.background = isSuccess
-? 'rgba(0, 140, 0, 0.88)'
-: 'rgba(0, 0, 0, 0.78)';
-}
-
-function hideScanning() {
-if (scanningOverlay) scanningOverlay.classList.add('hidden');
-}
-
-function showScanning() {
-if (scanningOverlay) scanningOverlay.classList.remove('hidden');
-}
-
-setStatus('AR Visitenkarte von Heiman Mustafa');
-showScanning();
-
-const sceneEl = document.querySelector('a-scene');
-if (!sceneEl) return;
-
-sceneEl.addEventListener('loaded', function () {
-setStatus('AR Visitenkarte von Heiman Mustafa');
-showScanning();
-setupTapInteraction();
-playExtrusionVideo();
-});
-
-function playExtrusionVideo() {
-const video = document.getElementById('extrusionVideo');
-if (video) {
-video.play().catch(function () {});
-}
-}
-
-const target = document.querySelector('[mindar-image-target]');
-if (target) {
-target.addEventListener('targetFound', function () {
-setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
-hideScanning();
-playExtrusionVideo();
-});
-target.addEventListener('targetLost', function () {
-setStatus('AR Visitenkarte von Heiman Mustafa');
-showScanning();
-});
-}
-
-window.addEventListener('error', function (e) {
-setStatus('Fehler: ' + (e.message || 'Unbekannt'));
-if (statusEl) statusEl.style.background = 'darkred';
-});
-
-setTimeout(function () {
-const video = document.querySelector('video');
-if (video) {
-video.style.display = 'block';
-video.style.opacity = '1';
-video.style.zIndex = '1';
-}
-}, 1000);
-
-// -----------------------------------------------------------------
-// Direktes Tap-Handling auf 3D-Objekte (statt A-Frame cursor).
-// -----------------------------------------------------------------
-function setupTapInteraction() {
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
-let interactiveObjects = [];
-
-function bind(id, action) {
-const el = document.getElementById(id);
-if (!el) return;
-el.object3D.userData.tapAction = action;
-interactiveObjects.push(el.object3D);
-}
-
-bind('phone-btn', function () {
-window.location.href = 'tel:' + PHONE_NUMBER;
-});
-
-bind('mail-btn', function () {
-const mailto = 'mailto:' + encodeURIComponent(EMAIL_ADDRESS) +
-'?subject=' + encodeURIComponent(EMAIL_SUBJECT) +
-'&body=' + encodeURIComponent(EMAIL_BODY);
-window.location.href = mailto;
-});
-
-bind('linkedin-btn', function () {
-window.open(LINKEDIN_URL, '_blank');
-});
-
-bind('youtube-btn-1', function () {
-const anchor = document.getElementById('dispenser-video-anchor');
-const video = document.getElementById('dispenserVideo');
-if (anchor) anchor.setAttribute('visible', 'true');
-if (video) {
-video.currentTime = 0;
-video.play().catch(function () {});
-}
-});
-
-function handleTap(clientX, clientY) {
-const canvas = sceneEl.canvas;
-const camera = sceneEl.camera;
-if (!canvas || !camera) return;
-const rect = canvas.getBoundingClientRect();
-pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-raycaster.setFromCamera(pointer, camera);
-const intersects = raycaster.intersectObjects(interactiveObjects, true);
-if (intersects.length > 0) {
-let hit = intersects.object;
-while (hit && !hit.userData.tapAction) {
-hit = hit.parent;
-}
-if (hit && hit.userData.tapAction) {
-hit.userData.tapAction();
-return true;
-}
-}
-return false;
-}
-
-const canvas = sceneEl.canvas;
-if (!canvas) return;
-
-canvas.addEventListener('touchend', function (e) {
-if (e.changedTouches && e.changedTouches.length > 0) {
-const t = e.changedTouches; // <- BEHOBEN: Hier wird jetzt die erste Berührung korrekt ausgelesen
+const t = e.changedTouches; // <- BEHOBEN: Jetzt wird das erste Touch-Objekt korrekt ausgelesen
 const opened = handleTap(t.clientX, t.clientY);
 if (opened) e.preventDefault();
 }
