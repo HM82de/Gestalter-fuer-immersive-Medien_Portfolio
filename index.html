@@ -149,6 +149,7 @@ embedded
 <a-asset-item id="mailModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Mail.glb"></a-asset-item>
 <a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
 <a-asset-item id="youtubeModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Youtube.glb"></a-asset-item>
+<a-asset-item id="monitorModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/monitor.glb"></a-asset-item>
 
 <video
 id="dispenserVideo"
@@ -209,6 +210,11 @@ preload="auto">
 <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
 <a-entity id="main-target" mindar-image-target="targetIndex: 0">
+<!-- Monitor 3D-Modell: mittig (x=0) hinter der oberen langen Kante (y=0.45, z=-0.05) platziert. Scale und Rotation koennen bei Bedarf angepasst werden -->
+<a-entity id="monitor-model" position="0 0.45 -0.05" rotation="0 0 0" scale="0.15 0.15 0.15">
+<a-gltf-model src="#monitorModel"></a-gltf-model>
+</a-entity>
+
 
 <!-- Dispenser-Video: Abstand auf y = 0.855 erhoeht, Breite auf 1.0 vergroessert, Hoehe auf 0.56 angepasst. Mit Einblend-Animation (Scale) -->
 <a-entity id="dispenser-video-anchor" position="0 0.855 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
