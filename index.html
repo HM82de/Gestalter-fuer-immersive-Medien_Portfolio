@@ -204,14 +204,24 @@ preload="auto">
 <audio id="sound-animationInkjetPolar" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/animationInkjetPolar.m4a" preload="auto" crossorigin="anonymous"></audio>
 <audio id="sound-modelPrinter" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/modelPrinter.m4a" preload="auto" crossorigin="anonymous"></audio>
 <audio id="sound-phone2" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/phone2.m4a" preload="auto" crossorigin="anonymous"></audio>
+
+<img id="flyerImage" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/screenshot_flyerGiM.png" crossorigin="anonymous">
 </a-assets>
 
 <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
 <a-entity id="main-target" mindar-image-target="targetIndex: 0">
 
+<!-- Flyer PNG (screenshot_flyerGiM.png): Liegt anfangs unsichtbar hinter der Visitenkarte.
+     Sobald alle Videos mindestens einmal abgespielt wurden, animiert es sich nach rechts mit einem weissen Konturrahmen. -->
+<a-entity id="flyer-anchor" position="0 0 -0.01" visible="false" animation="property: position; to: 0.9 0 0.01; dur: 1500; easing: easeOutQuad; startEvents: reveal">
+  <a-plane position="0 0 -0.001" width="0.687" height="1.04" color="#FFFFFF" material="shader: flat"></a-plane>
+  <a-image src="#flyerImage" position="0 0 0" width="0.647" height="1.0" material="shader: flat; transparent: true"></a-image>
+</a-entity>
+
+
 <!-- Dispenser-Video: Abstand auf y = 0.855 erhoeht, Breite auf 1.0 vergroessert, Hoehe auf 0.56 angepasst. Mit Einblend-Animation (Scale) -->
-<a-entity id="dispenser-video-anchor" position="0 0.855 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
+<a-entity id="dispenser-video-anchor" position="0 0.3635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
 <!-- Konturrahmen (weiß, leicht groesser und knapp hinter dem Video platziert) -->
 <a-plane position="0 0.28 -0.001" width="1.04" height="0.60" color="#FFFFFF" material="shader: flat"></a-plane>
 <a-video
@@ -224,7 +234,7 @@ material="shader: flat; transparent: true">
 </a-entity>
 
 <!-- Inkjet-Polar-Video: Entlang der oberen hinteren langen Kante (selbe Position wie Dispenser-Video) -->
-<a-entity id="inkjet-polar-video-anchor" position="0 0.855 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
+<a-entity id="inkjet-polar-video-anchor" position="0 0.3635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
 <!-- Konturrahmen (weiß, leicht groesser und knapp hinter dem Video platziert) -->
 <a-plane position="0 0.28 -0.001" width="1.04" height="0.60" color="#FFFFFF" material="shader: flat"></a-plane>
 <a-video
@@ -237,7 +247,7 @@ material="shader: flat; transparent: true">
 </a-entity>
 
 <!-- Inkjet-Linear-Video: Entlang der oberen hinteren langen Kante (selbe Position wie Dispenser-Video) -->
-<a-entity id="inkjet-linear-video-anchor" position="0 0.855 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
+<a-entity id="inkjet-linear-video-anchor" position="0 0.3635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
 <!-- Konturrahmen (weiß, leicht groesser und knapp hinter dem Video platziert) -->
 <a-plane position="0 0.28 -0.001" width="1.04" height="0.60" color="#FFFFFF" material="shader: flat"></a-plane>
 <a-video
@@ -320,6 +330,28 @@ const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education';
 const EMAIL_SUBJECT = 'Praktikum als Gestalter für immersive Medien';
 const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\n\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
 const LINKEDIN_URL = 'https://www.linkedin.com/in/heiman-mustafa';
+// ---- Flyer und Video-Tracking ----
+let dispenserPlayed = false;
+let inkjetLinearPlayed = false;
+let inkjetPolarPlayed = false;
+let flyerRevealed = false;
+
+function checkAllVideosPlayed() {
+  if (dispenserPlayed && inkjetLinearPlayed && inkjetPolarPlayed && !flyerRevealed) {
+    flyerRevealed = true;
+    revealFlyer();
+  }
+}
+
+function revealFlyer() {
+  const flyer = document.getElementById('flyer-anchor');
+  if (flyer) {
+    flyer.setAttribute('visible', 'true');
+    flyer.emit('reveal');
+    setStatus('✓ Flyer freigeschaltet! Tippe ihn an für das GIM-Infoblatt.', true);
+  }
+}
+
 // ---------------------------------------------
 
 function setStatus(text, isSuccess) {
@@ -483,8 +515,15 @@ playAudio('sound-LinkedIn');
 window.open(LINKEDIN_URL, '_blank');
 });
 
+bind('flyer-anchor', function () {
+  window.open('https://www.futuretrainings.com/wp-content/uploads/UM-GIM-Infoblatt-2025-1.pdf', '_blank');
+});
+
 // Erster YouTube-Button (Links): blendet das Inkjet-Polar-Video ein (spielt animationInkjetPolar.m4a)
 bind('youtube-btn-1', function () {
+inkjetPolarPlayed = true;
+if (typeof checkAllVideosPlayed === 'function') checkAllVideosPlayed();
+
 // Stop other video sharing the same position or others
 const otherAnchor = document.getElementById('inkjet-linear-video-anchor');
 const otherVideo = document.getElementById('inkjetLinearVideo');
@@ -517,6 +556,9 @@ video.play().catch(function () {});
 
 // Zweiter YouTube-Button (Mitte): startet Dispenser-Video (spielt animationDispenser.m4a)
 bind('youtube-btn-2', function () {
+dispenserPlayed = true;
+if (typeof checkAllVideosPlayed === 'function') checkAllVideosPlayed();
+
 const otherAnchor1 = document.getElementById('inkjet-linear-video-anchor');
 const otherVideo1 = document.getElementById('inkjetLinearVideo');
 if (otherAnchor1) {
@@ -548,6 +590,9 @@ video.play().catch(function () {});
 
 // Dritter YouTube-Button (Rechts): blendet das Inkjet-Linear-Video ein (spielt animationInkjetLinear.m4a)
 bind('youtube-btn-3', function () {
+inkjetLinearPlayed = true;
+if (typeof checkAllVideosPlayed === 'function') checkAllVideosPlayed();
+
 const otherAnchor = document.getElementById('inkjet-polar-video-anchor');
 const otherVideo = document.getElementById('inkjetPolarVideo');
 if (otherAnchor) {
