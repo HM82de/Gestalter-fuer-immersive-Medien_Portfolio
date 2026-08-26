@@ -213,11 +213,11 @@ preload="auto">
 
 <a-entity id="main-target" mindar-image-target="targetIndex: 0">
 
-<!-- Flyer PNG (screenshot_flyerGiM.png): Liegt anfangs unsichtbar hinter der Visitenkarte.
-     Sobald man auf GiM.glb tippt, animiert es sich nach rechts mit einem weissen Konturrahmen. -->
-<a-entity id="flyer-anchor" position="0 0 -0.01" visible="false" animation="property: position; to: 1.07 0 0.01; dur: 1500; easing: easeOutQuad; startEvents: reveal">
-  <a-plane position="0 0 -0.001" rotation="0 0 -90" width="0.687" height="1.04" color="#FFFFFF" material="shader: flat"></a-plane>
-  <a-image src="#flyerImage" position="0 0 0" rotation="0 0 -90" width="0.647" height="1.0" material="shader: flat; transparent: true"></a-image>
+<!-- Flyer PNG (screenshot_flyerGiM.png): Liegt anfangs unsichtbar auf derselben Position wie die Videos.
+     Sobald man auf GiM.glb tippt, wird es eingeblendet und um 90 Grad nach links (rotation 0 0 90) sowie um 30 Grad nach vorne rotiert. -->
+<a-entity id="flyer-anchor" position="0 0.3635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showFlyer">
+  <a-plane position="0 0.28 -0.001" rotation="0 0 90" width="0.687" height="1.04" color="#FFFFFF" material="shader: flat"></a-plane>
+  <a-image src="#flyerImage" position="0 0.28 0" rotation="0 0 90" width="0.647" height="1.0" material="shader: flat; transparent: true"></a-image>
 </a-entity>
 
 
@@ -507,11 +507,37 @@ window.open(LINKEDIN_URL, '_blank');
 });
 
 bind('gim-btn', function () {
+  // Alle Videos ausblenden und pausieren
+  const dispenserAnchor = document.getElementById('dispenser-video-anchor');
+  const dispenserVideo = document.getElementById('dispenserVideo');
+  if (dispenserAnchor) {
+    dispenserAnchor.setAttribute('visible', 'false');
+    dispenserAnchor.setAttribute('scale', '0 0 0');
+  }
+  if (dispenserVideo) dispenserVideo.pause();
+
+  const polarAnchor = document.getElementById('inkjet-polar-video-anchor');
+  const polarVideo = document.getElementById('inkjetPolarVideo');
+  if (polarAnchor) {
+    polarAnchor.setAttribute('visible', 'false');
+    polarAnchor.setAttribute('scale', '0 0 0');
+  }
+  if (polarVideo) polarVideo.pause();
+
+  const linearAnchor = document.getElementById('inkjet-linear-video-anchor');
+  const linearVideo = document.getElementById('inkjetLinearVideo');
+  if (linearAnchor) {
+    linearAnchor.setAttribute('visible', 'false');
+    linearAnchor.setAttribute('scale', '0 0 0');
+  }
+  if (linearVideo) linearVideo.pause();
+
+  // Flyer an der exakt gleichen Position einblenden
   const flyer = document.getElementById('flyer-anchor');
   if (flyer) {
     flyer.setAttribute('visible', 'true');
-    flyer.emit('reveal');
-    setStatus('✓ Infoblatt-Flyer ausgefahren!', true);
+    flyer.emit('showFlyer');
+    setStatus('✓ Infoblatt-Flyer geöffnet!', true);
   }
 });
 
@@ -538,6 +564,13 @@ dispenserAnchor.setAttribute('visible', 'false');
 dispenserAnchor.setAttribute('scale', '0 0 0');
 }
 if (dispenserVideo) dispenserVideo.pause();
+
+// Flyer ebenfalls ausblenden, um freie Sicht auf das Video zu gewaehrleisten
+const flyer = document.getElementById('flyer-anchor');
+if (flyer) {
+  flyer.setAttribute('visible', 'false');
+  flyer.setAttribute('scale', '0 0 0');
+}
 
 playAudio('sound-animationInkjetPolar');
 const anchor = document.getElementById('inkjet-polar-video-anchor');
@@ -571,6 +604,13 @@ otherAnchor2.setAttribute('scale', '0 0 0');
 }
 if (otherVideo2) otherVideo2.pause();
 
+// Flyer ebenfalls ausblenden, um freie Sicht auf das Video zu gewaehrleisten
+const flyer = document.getElementById('flyer-anchor');
+if (flyer) {
+  flyer.setAttribute('visible', 'false');
+  flyer.setAttribute('scale', '0 0 0');
+}
+
 playAudio('sound-animationDispenser');
 const anchor = document.getElementById('dispenser-video-anchor');
 const video = document.getElementById('dispenserVideo');
@@ -602,6 +642,13 @@ dispenserAnchor.setAttribute('visible', 'false');
 dispenserAnchor.setAttribute('scale', '0 0 0');
 }
 if (dispenserVideo) dispenserVideo.pause();
+
+// Flyer ebenfalls ausblenden, um freie Sicht auf das Video zu gewaehrleisten
+const flyer = document.getElementById('flyer-anchor');
+if (flyer) {
+  flyer.setAttribute('visible', 'false');
+  flyer.setAttribute('scale', '0 0 0');
+}
 
 playAudio('sound-animationInkjetLinear');
 const anchor = document.getElementById('inkjet-linear-video-anchor');
