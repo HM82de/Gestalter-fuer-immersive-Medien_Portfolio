@@ -137,14 +137,14 @@ Kamera auf die Visitenkarte richten
 </div>
 </div>
 <a-scene
-mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets3.mind; autoStart: true; uiScanning: no; uiLoading: no; filterMinCF: 0.001; filterBeta: 1.0; missTolerance: 8; warmupTolerance: 5;"
+mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets4.mind; autoStart: true; uiScanning: no; uiLoading: no; filterMinCF: 0.001; filterBeta: 1.0; missTolerance: 8; warmupTolerance: 5;"
 color-space="sRGB"
 renderer="colorManagement: true, physicallyCorrectLights"
 vr-mode-ui="enabled: false"
 device-orientation-permission-ui="enabled: false"
 embedded
 >
-<a-assets timeout="4000">
+<a-assets timeout="5000">
 <a-asset-item id="phoneModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Phone.glb"></a-asset-item>
 <a-asset-item id="mailModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Mail.glb"></a-asset-item>
 <a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
@@ -385,14 +385,10 @@ initAR();
 sceneEl.addEventListener('loaded', initAR);
 }
 
-// Sicherheits-Fallback: Falls A-Frame durch blockierende Assets oder CORS-Fehler
-// nicht 'loaded' feuert, initialisieren wir nach 4 Sekunden manuell, damit der Ladebildschirm verschwindet.
-setTimeout(function() {
-  if (!scriptInitialized) {
-    console.warn("Sicherheits-Fallback: A-Frame loaded-Event dauerte zu lange. Initialisiere AR manuell.");
-    initAR();
-  }
-}, 4000);
+// Ultimatives Sicherheitsnetz: Initialisiere AR nach 3 Sekunden, falls die Scene-Events blockiert sind
+setTimeout(function () {
+initAR();
+}, 3000);
 
 function setupTargetEvents() {
 const target = document.getElementById('main-target');
@@ -406,6 +402,15 @@ setStatus('AR Visitenkarte von Heiman Mustafa');
 showScanning();
 });
 }
+
+// AR-System Event Listeners für Feedback zum Ladezustand und Fehlerbehandlung
+sceneEl.addEventListener('arReady', function () {
+setStatus('✓ AR bereit! Bitte Kamera auf die Visitenkarte richten.', true);
+});
+sceneEl.addEventListener('arError', function (e) {
+setStatus('Kamera-Fehler: Bitte Kamera-Zugriff erlauben und Seite neu laden!', false);
+if (statusEl) statusEl.style.background = 'darkred';
+});
 
 // ---- VIDEO DIAGNOSTICS FOR HEIMAN ----
 const videosToWatch = ['dispenserVideo', 'extrusionVideo', 'inkjetLinearVideo', 'inkjetPolarVideo'];
@@ -445,21 +450,7 @@ cameraVideo.style.zIndex = '1';
 // -----------------------------------------------------------------
 // Direktes Tap-Handling auf 3D-Objekte (statt A-Frame cursor).
 // -----------------------------------------------------------------
-let tapInteractionInitialized = false;
 function setupTapInteraction() {
-if (tapInteractionInitialized) return;
-const sceneEl = document.querySelector('a-scene');
-const canvas = sceneEl ? sceneEl.canvas : null;
-if (!canvas) {
-  if (sceneEl) {
-    sceneEl.addEventListener('renderstart', function once() {
-      sceneEl.removeEventListener('renderstart', once);
-      setupTapInteraction();
-    });
-  }
-  return;
-}
-tapInteractionInitialized = true;
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const interactiveObjects = new Array();
