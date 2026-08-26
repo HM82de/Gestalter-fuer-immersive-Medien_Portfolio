@@ -144,7 +144,7 @@ vr-mode-ui="enabled: false"
 device-orientation-permission-ui="enabled: false"
 embedded
 >
-<a-assets timeout="5000">
+<a-assets timeout="4000">
 <a-asset-item id="phoneModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Phone.glb"></a-asset-item>
 <a-asset-item id="mailModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Mail.glb"></a-asset-item>
 <a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
@@ -213,11 +213,11 @@ preload="auto">
 
 <a-entity id="main-target" mindar-image-target="targetIndex: 0">
 
-<!-- Flyer PNG (screenshot_flyerGiM.png): Liegt anfangs unsichtbar auf derselben Position wie die Videos (mit leicht erhoehtem Abstand).
+<!-- Flyer PNG (screenshot_flyerGiM.png): Liegt anfangs unsichtbar auf derselben Position wie die Videos (mit perfekt bündiger Unterkante und kleinem Luftspalt).
      Sobald man auf GiM.glb tippt, wird es eingeblendet und steht hochkant (rotation 0 0 0) sowie um 30 Grad nach vorne rotiert. -->
-<a-entity id="flyer-anchor" position="0 0.4635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showFlyer">
-  <a-plane position="0 0.28 -0.001" rotation="0 0 0" width="0.687" height="1.04" color="#FFFFFF" material="shader: flat"></a-plane>
-  <a-image src="#flyerImage" position="0 0.28 0" rotation="0 0 0" width="0.647" height="1.0" material="shader: flat; transparent: true"></a-image>
+<a-entity id="flyer-anchor" position="0 0.3635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showFlyer">
+  <a-plane position="0 0.7725 -0.001" rotation="0 0 0" width="1.04" height="1.585" color="#FFFFFF" material="shader: flat"></a-plane>
+  <a-image src="#flyerImage" position="0 0.7725 0" rotation="0 0 0" width="1.0" height="1.545" material="shader: flat; transparent: true"></a-image>
 </a-entity>
 
 
@@ -250,7 +250,8 @@ material="shader: flat; transparent: true">
 <!-- Inkjet-Linear-Video: Entlang der oberen hinteren langen Kante (selbe Position wie Dispenser-Video) -->
 <a-entity id="inkjet-linear-video-anchor" position="0 0.3635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
 <!-- Konturrahmen (weiß, leicht groesser und knapp hinter dem Video platziert) -->
-<a-plane position="0 0.28 -0.001" width="1.04" height="0.60" color="#FFFFFF" material="shader: flat"></a-plane>
+<a-plane position="0 0.28 -0.001" width="1.04" height="0.60" color="#FFFFFF" material="shader: flat">
+</a-plane>
 <a-video
 src="#inkjetLinearVideo"
 position="0 0.28 0"
@@ -339,7 +340,7 @@ const scanningOverlay = document.getElementById('scanning-overlay');
 const PHONE_NUMBER = '+4917641996982';
 const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education';
 const EMAIL_SUBJECT = 'Praktikum als Gestalter für immersive Medien';
-const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\n\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
+const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\\n\\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
 const LINKEDIN_URL = 'https://www.linkedin.com/in/heiman-mustafa';
 
 
@@ -407,6 +408,7 @@ showScanning();
 sceneEl.addEventListener('arReady', function () {
 setStatus('✓ AR bereit! Bitte Kamera auf die Visitenkarte richten.', true);
 });
+
 sceneEl.addEventListener('arError', function (e) {
 setStatus('Kamera-Fehler: Bitte Kamera-Zugriff erlauben und Seite neu laden!', false);
 if (statusEl) statusEl.style.background = 'darkred';
