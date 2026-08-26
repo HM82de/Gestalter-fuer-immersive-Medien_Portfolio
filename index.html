@@ -213,11 +213,11 @@ preload="auto">
 
 <a-entity id="main-target" mindar-image-target="targetIndex: 0">
 
-<!-- Flyer PNG (screenshot_flyerGiM.png): Liegt anfangs unsichtbar auf derselben Position wie die Videos.
-     Sobald man auf GiM.glb tippt, wird es eingeblendet und um 90 Grad nach links (rotation 0 0 90) sowie um 30 Grad nach vorne rotiert. -->
-<a-entity id="flyer-anchor" position="0 0.3635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showFlyer">
-  <a-plane position="0 0.28 -0.001" rotation="0 0 90" width="0.687" height="1.04" color="#FFFFFF" material="shader: flat"></a-plane>
-  <a-image src="#flyerImage" position="0 0.28 0" rotation="0 0 90" width="0.647" height="1.0" material="shader: flat; transparent: true"></a-image>
+<!-- Flyer PNG (screenshot_flyerGiM.png): Liegt anfangs unsichtbar auf derselben Position wie die Videos (mit leicht erhoehtem Abstand).
+     Sobald man auf GiM.glb tippt, wird es eingeblendet und um 90 Grad nach rechts (rotation 0 0 -90) sowie um 30 Grad nach vorne rotiert. -->
+<a-entity id="flyer-anchor" position="0 0.4635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showFlyer">
+  <a-plane position="0 0.28 -0.001" rotation="0 0 -90" width="0.687" height="1.04" color="#FFFFFF" material="shader: flat"></a-plane>
+  <a-image src="#flyerImage" position="0 0.28 0" rotation="0 0 -90" width="0.647" height="1.0" material="shader: flat; transparent: true"></a-image>
 </a-entity>
 
 
