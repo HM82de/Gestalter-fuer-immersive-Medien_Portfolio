@@ -150,6 +150,7 @@ embedded
 <a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
 <a-asset-item id="youtubeModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Youtube.glb"></a-asset-item>
 <a-asset-item id="gimModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/GiM.glb"></a-asset-item>
+<a-asset-item id="ijDesignModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/IJ_conceptional-design.glb"></a-asset-item>
 
 <video
 id="dispenserVideo"
@@ -313,6 +314,16 @@ scale="0.1125 0.1125 0.1125"
 rotation="-90 0 0">
 </a-gltf-model>
 <a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
+</a-entity>
+
+<!-- IJ_conceptional-design 3D-Modell: Positioniert direkt links neben der Visitenkarte (x = -0.75, y = 0, z = 0.02)
+     mit gleicher Groesse und Orientierung wie die anderen Buttons. -->
+<a-entity id="ij-design-btn" position="-0.75 0 0.02" rotation="0 0 -90">
+<a-gltf-model
+src="#ijDesignModel"
+scale="0.1125 0.1125 0.1125"
+rotation="-90 0 0">
+</a-gltf-model>
 </a-entity>
 
 <!-- GiM 3D-Modell: Positioniert ueber dem QR-Code der Visitenkarte im Querformat (x = 0.25, y = 0, z = 0.02). Gleiche Orientierung und Groesse wie die anderen Buttons. -->
