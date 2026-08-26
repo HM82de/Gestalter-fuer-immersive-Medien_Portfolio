@@ -223,14 +223,14 @@ material="shader: flat; transparent: true">
 </a-video>
 </a-entity>
 
-<!-- Extrusion-Video: positioniert auf x = -0.58, Hoehe 1.55, Breite 0.86 -->
-<a-entity id="extrusion-video-anchor" position="-0.58 0 0.02" rotation="0 30 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
+<!-- Inkjet-Polar-Video: positioniert auf x = 0.58 (selbe Position wie Inkjet-Linear) -->
+<a-entity id="inkjet-polar-video-anchor" position="0.58 0 0.02" rotation="0 -30 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
 <!-- Konturrahmen (weiß, leicht groesser und knapp hinter dem Video platziert) -->
-<a-plane position="-0.43 0 -0.001" rotation="0 0 90" width="1.59" height="0.90" color="#FFFFFF" material="shader: flat"></a-plane>
+<a-plane position="0.43 0 -0.001" rotation="0 0 -90" width="1.59" height="0.90" color="#FFFFFF" material="shader: flat"></a-plane>
 <a-video
-src="#extrusionVideo"
-position="-0.43 0 0"
-rotation="0 0 90"
+src="#inkjetPolarVideo"
+position="0.43 0 0"
+rotation="0 0 -90"
 width="1.55"
 height="0.86"
 material="shader: flat; transparent: true">
@@ -485,11 +485,28 @@ playAudio('sound-LinkedIn');
 window.open(LINKEDIN_URL, '_blank');
 });
 
-// Erster YouTube-Button (Links): blendet das Extrusion-Video mit Einblend-Animation ein und startet es (spielt animationExtruder.m4a)
+// Erster YouTube-Button (Links): blendet das Inkjet-Polar-Video ein (spielt animationInkjetPolar.m4a)
 bind('youtube-btn-1', function () {
-playAudio('sound-animationExtruder');
-const anchor = document.getElementById('extrusion-video-anchor');
-const video = document.getElementById('extrusionVideo');
+// Stop other video sharing the same position or others
+const otherAnchor = document.getElementById('inkjet-linear-video-anchor');
+const otherVideo = document.getElementById('inkjetLinearVideo');
+if (otherAnchor) {
+otherAnchor.setAttribute('visible', 'false');
+otherAnchor.setAttribute('scale', '0 0 0');
+}
+if (otherVideo) otherVideo.pause();
+
+const dispenserAnchor = document.getElementById('dispenser-video-anchor');
+const dispenserVideo = document.getElementById('dispenserVideo');
+if (dispenserAnchor) {
+dispenserAnchor.setAttribute('visible', 'false');
+dispenserAnchor.setAttribute('scale', '0 0 0');
+}
+if (dispenserVideo) dispenserVideo.pause();
+
+playAudio('sound-animationInkjetPolar');
+const anchor = document.getElementById('inkjet-polar-video-anchor');
+const video = document.getElementById('inkjetPolarVideo');
 if (anchor) {
 anchor.setAttribute('visible', 'true');
 anchor.emit('showVideo');
@@ -500,8 +517,24 @@ video.play().catch(function () {});
 }
 });
 
-// Zweiter YouTube-Button (Mitte): startet Dispenser-Video mit Einblend-Animation (spielt animationDispenser.m4a)
+// Zweiter YouTube-Button (Mitte): startet Dispenser-Video (spielt animationDispenser.m4a)
 bind('youtube-btn-2', function () {
+const otherAnchor1 = document.getElementById('inkjet-linear-video-anchor');
+const otherVideo1 = document.getElementById('inkjetLinearVideo');
+if (otherAnchor1) {
+otherAnchor1.setAttribute('visible', 'false');
+otherAnchor1.setAttribute('scale', '0 0 0');
+}
+if (otherVideo1) otherVideo1.pause();
+
+const otherAnchor2 = document.getElementById('inkjet-polar-video-anchor');
+const otherVideo2 = document.getElementById('inkjetPolarVideo');
+if (otherAnchor2) {
+otherAnchor2.setAttribute('visible', 'false');
+otherAnchor2.setAttribute('scale', '0 0 0');
+}
+if (otherVideo2) otherVideo2.pause();
+
 playAudio('sound-animationDispenser');
 const anchor = document.getElementById('dispenser-video-anchor');
 const video = document.getElementById('dispenserVideo');
@@ -515,8 +548,24 @@ video.play().catch(function () {});
 }
 });
 
-// Dritter YouTube-Button (Rechts): blendet das Inkjet-Linear-Video mit Einblend-Animation ein und startet es (spielt animationInkjetLinear.m4a)
+// Dritter YouTube-Button (Rechts): blendet das Inkjet-Linear-Video ein (spielt animationInkjetLinear.m4a)
 bind('youtube-btn-3', function () {
+const otherAnchor = document.getElementById('inkjet-polar-video-anchor');
+const otherVideo = document.getElementById('inkjetPolarVideo');
+if (otherAnchor) {
+otherAnchor.setAttribute('visible', 'false');
+otherAnchor.setAttribute('scale', '0 0 0');
+}
+if (otherVideo) otherVideo.pause();
+
+const dispenserAnchor = document.getElementById('dispenser-video-anchor');
+const dispenserVideo = document.getElementById('dispenserVideo');
+if (dispenserAnchor) {
+dispenserAnchor.setAttribute('visible', 'false');
+dispenserAnchor.setAttribute('scale', '0 0 0');
+}
+if (dispenserVideo) dispenserVideo.pause();
+
 playAudio('sound-animationInkjetLinear');
 const anchor = document.getElementById('inkjet-linear-video-anchor');
 const video = document.getElementById('inkjetLinearVideo');
