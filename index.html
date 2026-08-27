@@ -19,11 +19,17 @@ AFRAME.registerComponent('center-pivot', {
             node.geometry.computeBoundingBox();
           }
           const tempBox = node.geometry.boundingBox.clone();
-          node.updateMatrixWorld(true);
-          mesh.updateMatrixWorld(true);
-          const matrix = new THREE.Matrix4();
-          matrix.copy(mesh.matrixWorld).invert().multiply(node.matrixWorld);
-          tempBox.applyMatrix4(matrix);
+          
+          // Sensationell robuste Berechnung des lokalen Offsets unabhaengig von MatrixWorld (die bei scale=0 fehlschlaegt)
+          const localMatrix = new THREE.Matrix4();
+          let current = node;
+          while (current && current !== mesh) {
+            current.updateMatrix();
+            localMatrix.premultiply(current.matrix);
+            current = current.parent;
+          }
+          
+          tempBox.applyMatrix4(localMatrix);
           box.union(tempBox);
         }
       });
