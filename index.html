@@ -206,6 +206,7 @@ preload="auto">
 <audio id="sound-animationInkjetPolar" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/animationInkjetPolar.m4a" preload="auto" crossorigin="anonymous"></audio>
 <audio id="sound-modelPrinter" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/modelPrinter.m4a" preload="auto" crossorigin="anonymous"></audio>
 <audio id="sound-phone2" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/phone2.m4a" preload="auto" crossorigin="anonymous"></audio>
+<audio id="sound-GiM" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/GiM.m4a" preload="auto" crossorigin="anonymous"></audio>
 
 <img id="flyerImage" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/screenshot_flyerGiM.png" crossorigin="anonymous">
 </a-assets>
@@ -534,6 +535,7 @@ window.open(LINKEDIN_URL, '_blank');
 });
 
 bind('gim-btn', function () {
+  playAudio('sound-GiM');
   // Alle Videos ausblenden und pausieren
   const dispenserAnchor = document.getElementById('dispenser-video-anchor');
   const dispenserVideo = document.getElementById('dispenserVideo');
