@@ -317,9 +317,9 @@ rotation="-90 0 0">
 <a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
 </a-entity>
 
-<!-- IJ_conceptional-design 3D-Modell: Positioniert direkt links neben der Visitenkarte (x = -0.75, y = 0, z = 0.02)
-     mit gleicher Groesse und Orientierung wie die anderen Buttons. -->
-<a-entity id="ij-design-btn" position="-0.75 0.14 -0.05" rotation="0 0 -90">
+<!-- IJ_conceptional-design 3D-Modell: Positioniert direkt links neben der Visitenkarte (x = -0.75, y = 0.14, z = -0.05)
+     mit gleicher Groesse und Orientierung wie die anderen Buttons. Startet unsichtbar und wird bei Klick auf youtube-btn-3 angezeigt. -->
+<a-entity id="ij-design-btn" position="-0.75 0.14 -0.05" rotation="0 0 -90" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showModel">
 <a-gltf-model
 src="#ijDesignModel"
 scale="0.039375 0.039375 0.039375"
@@ -561,6 +561,12 @@ bind('gim-btn', function () {
   }
   if (linearVideo) linearVideo.pause();
 
+  const designBtn = document.getElementById('ij-design-btn');
+  if (designBtn) {
+    designBtn.setAttribute('visible', 'false');
+    designBtn.setAttribute('scale', '0 0 0');
+  }
+
   // Flyer an der exakt gleichen Position einblenden
   const flyer = document.getElementById('flyer-anchor');
   if (flyer) {
@@ -574,12 +580,12 @@ bind('flyer-anchor', function () {
   window.open('https://www.futuretrainings.com/wp-content/uploads/UM-GIM-Infoblatt-2025-1.pdf', '_blank');
 });
 
-// Erster YouTube-Button (Links): blendet das Inkjet-Polar-Video ein (spielt animationInkjetPolar.m4a)
+// Erster YouTube-Button (Links): blendet das Inkjet-Linear-Video ein (spielt animationInkjetLinear.m4a)
 bind('youtube-btn-1', function () {
 
-// Stop other video sharing the same position or others
-const otherAnchor = document.getElementById('inkjet-linear-video-anchor');
-const otherVideo = document.getElementById('inkjetLinearVideo');
+// Alle anderen Videos, Flyer und das 3D-Modell ausblenden
+const otherAnchor = document.getElementById('inkjet-polar-video-anchor');
+const otherVideo = document.getElementById('inkjetPolarVideo');
 if (otherAnchor) {
 otherAnchor.setAttribute('visible', 'false');
 otherAnchor.setAttribute('scale', '0 0 0');
@@ -594,11 +600,61 @@ dispenserAnchor.setAttribute('scale', '0 0 0');
 }
 if (dispenserVideo) dispenserVideo.pause();
 
-// Flyer ebenfalls ausblenden, um freie Sicht auf das Video zu gewaehrleisten
 const flyer = document.getElementById('flyer-anchor');
 if (flyer) {
   flyer.setAttribute('visible', 'false');
   flyer.setAttribute('scale', '0 0 0');
+}
+
+const designBtn = document.getElementById('ij-design-btn');
+if (designBtn) {
+  designBtn.setAttribute('visible', 'false');
+  designBtn.setAttribute('scale', '0 0 0');
+}
+
+playAudio('sound-animationInkjetLinear');
+const anchor = document.getElementById('inkjet-linear-video-anchor');
+const video = document.getElementById('inkjetLinearVideo');
+if (anchor) {
+anchor.setAttribute('visible', 'true');
+anchor.emit('showVideo');
+}
+if (video) {
+video.currentTime = 0;
+video.play().catch(function () {});
+}
+setStatus('✓ 3D-Animation in Dauerschleife', true);
+});
+
+// Zweiter YouTube-Button (Mitte): startet Inkjet-Polar-Video (spielt animationInkjetPolar.m4a)
+bind('youtube-btn-2', function () {
+
+const otherAnchor1 = document.getElementById('inkjet-linear-video-anchor');
+const otherVideo1 = document.getElementById('inkjetLinearVideo');
+if (otherAnchor1) {
+otherAnchor1.setAttribute('visible', 'false');
+otherAnchor1.setAttribute('scale', '0 0 0');
+}
+if (otherVideo1) otherVideo1.pause();
+
+const dispenserAnchor = document.getElementById('dispenser-video-anchor');
+const dispenserVideo = document.getElementById('dispenserVideo');
+if (dispenserAnchor) {
+dispenserAnchor.setAttribute('visible', 'false');
+dispenserAnchor.setAttribute('scale', '0 0 0');
+}
+if (dispenserVideo) dispenserVideo.pause();
+
+const flyer = document.getElementById('flyer-anchor');
+if (flyer) {
+  flyer.setAttribute('visible', 'false');
+  flyer.setAttribute('scale', '0 0 0');
+}
+
+const designBtn = document.getElementById('ij-design-btn');
+if (designBtn) {
+  designBtn.setAttribute('visible', 'false');
+  designBtn.setAttribute('scale', '0 0 0');
 }
 
 playAudio('sound-animationInkjetPolar');
@@ -615,8 +671,8 @@ video.play().catch(function () {});
 setStatus('✓ 3D-Animation in Dauerschleife', true);
 });
 
-// Zweiter YouTube-Button (Mitte): startet Dispenser-Video (spielt animationDispenser.m4a)
-bind('youtube-btn-2', function () {
+// Dritter YouTube-Button (Rechts): blendet das 3D-Modell IJ_conceptional-design.glb ein (spielt modelPrinter.m4a)
+bind('youtube-btn-3', function () {
 
 const otherAnchor1 = document.getElementById('inkjet-linear-video-anchor');
 const otherVideo1 = document.getElementById('inkjetLinearVideo');
@@ -634,38 +690,6 @@ otherAnchor2.setAttribute('scale', '0 0 0');
 }
 if (otherVideo2) otherVideo2.pause();
 
-// Flyer ebenfalls ausblenden, um freie Sicht auf das Video zu gewaehrleisten
-const flyer = document.getElementById('flyer-anchor');
-if (flyer) {
-  flyer.setAttribute('visible', 'false');
-  flyer.setAttribute('scale', '0 0 0');
-}
-
-playAudio('sound-animationDispenser');
-const anchor = document.getElementById('dispenser-video-anchor');
-const video = document.getElementById('dispenserVideo');
-if (anchor) {
-anchor.setAttribute('visible', 'true');
-anchor.emit('showVideo');
-}
-if (video) {
-video.currentTime = 0;
-video.play().catch(function () {});
-}
-setStatus('✓ 3D-Animation in Dauerschleife', true);
-});
-
-// Dritter YouTube-Button (Rechts): blendet das Inkjet-Linear-Video ein (spielt animationInkjetLinear.m4a)
-bind('youtube-btn-3', function () {
-
-const otherAnchor = document.getElementById('inkjet-polar-video-anchor');
-const otherVideo = document.getElementById('inkjetPolarVideo');
-if (otherAnchor) {
-otherAnchor.setAttribute('visible', 'false');
-otherAnchor.setAttribute('scale', '0 0 0');
-}
-if (otherVideo) otherVideo.pause();
-
 const dispenserAnchor = document.getElementById('dispenser-video-anchor');
 const dispenserVideo = document.getElementById('dispenserVideo');
 if (dispenserAnchor) {
@@ -674,23 +698,17 @@ dispenserAnchor.setAttribute('scale', '0 0 0');
 }
 if (dispenserVideo) dispenserVideo.pause();
 
-// Flyer ebenfalls ausblenden, um freie Sicht auf das Video zu gewaehrleisten
 const flyer = document.getElementById('flyer-anchor');
 if (flyer) {
   flyer.setAttribute('visible', 'false');
   flyer.setAttribute('scale', '0 0 0');
 }
 
-playAudio('sound-animationInkjetLinear');
-const anchor = document.getElementById('inkjet-linear-video-anchor');
-const video = document.getElementById('inkjetLinearVideo');
+playAudio('sound-modelPrinter');
+const anchor = document.getElementById('ij-design-btn');
 if (anchor) {
 anchor.setAttribute('visible', 'true');
-anchor.emit('showVideo');
-}
-if (video) {
-video.currentTime = 0;
-video.play().catch(function () {});
+anchor.emit('showModel');
 }
 setStatus('✓ 3D-Animation in Dauerschleife', true);
 });
