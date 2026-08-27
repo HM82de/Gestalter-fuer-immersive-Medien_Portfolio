@@ -7,6 +7,419 @@
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 <script>
+(function () {
+if (window.__arVisitenkarteInitialized) return;
+window.__arVisitenkarteInitialized = true;
+
+const statusEl = document.getElementById('status');
+const scanningOverlay = document.getElementById('scanning-overlay');
+
+// ---- HIER ANPASSEN: eigene Kontaktdaten ----
+const PHONE_NUMBER = '+4917641996982';
+const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education';
+const EMAIL_SUBJECT = 'Praktikum als Gestalter für immersive Medien';
+const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\\n\\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
+const LINKEDIN_URL = 'https://www.linkedin.com/in/heiman-mustafa';
+
+// ---------------------------------------------
+let targetDetected = false;
+
+function setStatus(text, isSuccess) {
+  if (!statusEl) return;
+  statusEl.textContent = text;
+  statusEl.style.background = isSuccess
+    ? 'rgba(0, 140, 0, 0.88)'
+    : 'rgba(0, 0, 0, 0.78)';
+}
+
+function hideScanning() {
+  targetDetected = true;
+  if (scanningOverlay) scanningOverlay.classList.add('hidden');
+}
+
+function showScanning() {
+  if (targetDetected) return; // Sicherheitsnetz: Zeige den Ladebildschirm nicht, wenn das Target bereits erkannt ist!
+  if (scanningOverlay) scanningOverlay.classList.remove('hidden');
+}
+
+// Sofortiger Startzustand
+setStatus('AR Visitenkarte von Heiman Mustafa');
+showScanning();
+
+// -----------------------------------------------------------------
+// SOFORTIGE Registrierung der Target-Events gegen Race Conditions!
+// -----------------------------------------------------------------
+const target = document.getElementById('main-target');
+if (target) {
+  target.addEventListener('targetFound', function () {
+    setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
+    hideScanning();
+  });
+  target.addEventListener('targetLost', function () {
+    targetDetected = false;
+    setStatus('AR Visitenkarte von Heiman Mustafa');
+    showScanning();
+  });
+}
+
+const sceneEl = document.querySelector('a-scene');
+if (!sceneEl) return;
+
+let scriptInitialized = false;
+
+function initAR() {
+  if (scriptInitialized) return;
+  scriptInitialized = true;
+
+  // Initialisiere Interaktionen und System-Events
+  setupTapInteraction();
+  setupSystemEvents();
+}
+
+if (sceneEl.hasLoaded) {
+  initAR();
+} else {
+  sceneEl.addEventListener('loaded', initAR);
+}
+
+// Ultimatives Sicherheitsnetz: Initialisiere Interaktionen nach 3 Sekunden
+setTimeout(function () {
+  initAR();
+}, 3000);
+
+function setupSystemEvents() {
+  // AR-System Event Listeners für Ladezustand und Fehlerbehandlung
+  sceneEl.addEventListener('arReady', function () {
+    if (!targetDetected) {
+      setStatus('✓ AR bereit! Bitte Kamera auf die Visitenkarte richten.', true);
+    }
+  });
+
+  sceneEl.addEventListener('arError', function (e) {
+    setStatus('Kamera-Fehler: Bitte Kamera-Zugriff erlauben und Seite neu laden!', false);
+    if (statusEl) statusEl.style.background = 'darkred';
+  });
+
+  // ---- VIDEO DIAGNOSTICS ----
+  const videosToWatch = ['dispenserVideo', 'extrusionVideo', 'inkjetLinearVideo', 'inkjetPolarVideo'];
+  videosToWatch.forEach(function(id) {
+    const v = document.getElementById(id);
+    if (v) {
+      v.addEventListener('error', function() {
+        const err = v.error;
+        let errMsg = "Unbekannter Fehler";
+        if (err) {
+          if (err.code === 1) errMsg = "Abgebrochen (1)";
+          else if (err.code === 2) errMsg = "Netzwerkfehler (2)";
+          else if (err.code === 3) errMsg = "Decodierfehler (3)";
+          else if (err.code === 4) errMsg = "Datei nicht gefunden oder Format ungueltig (404)";
+        }
+        setStatus("Video-Fehler (" + id + "): " + errMsg, false);
+        if (statusEl) statusEl.style.background = 'darkred';
+      });
+    }
+  });
+}
+
+window.addEventListener('error', function (e) {
+  setStatus('Fehler: ' + (e.message || 'Unbekannt'));
+  if (statusEl) statusEl.style.background = 'darkred';
+});
+
+setTimeout(function () {
+  const cameraVideo = document.querySelector('body > video:not([id])');
+  if (cameraVideo) {
+    cameraVideo.style.display = 'block';
+    cameraVideo.style.opacity = '1';
+    cameraVideo.style.zIndex = '1';
+  }
+}, 1000);
+
+// -----------------------------------------------------------------
+// Direktes Tap-Handling auf 3D-Objekte (statt A-Frame cursor).
+// -----------------------------------------------------------------
+function setupTapInteraction() {
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  const interactiveObjects = new Array();
+
+  function playAudio(audioId) {
+    const sound = document.getElementById(audioId);
+    if (sound) {
+      sound.currentTime = 0;
+      sound.play().catch(function (e) {});
+    }
+  }
+
+  function triggerHaptic(id) {
+    if (navigator.vibrate) {
+      navigator.vibrate(40);
+    }
+    const el = document.getElementById(id);
+    if (el) {
+      el.setAttribute('animation__haptic', {
+        property: 'scale',
+        to: '0.8 0.8 0.8',
+        dur: 80,
+        easing: 'easeOutQuad'
+      });
+      setTimeout(function () {
+        el.setAttribute('animation__haptic', {
+          property: 'scale',
+          to: '1 1 1',
+          dur: 150,
+          easing: 'easeOutBack'
+        });
+      }, 80);
+    }
+  }
+
+  function bind(id, action) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.object3D.userData.tapAction = function () {
+      triggerHaptic(id);
+      action();
+    };
+    interactiveObjects.push(el.object3D);
+  }
+
+  bind('phone-btn', function () {
+    playAudio('sound-phone');
+    window.location.href = 'tel:' + PHONE_NUMBER;
+  });
+
+  bind('mail-btn', function () {
+    playAudio('sound-mail');
+    const mailto = 'mailto:' + encodeURIComponent(EMAIL_ADDRESS) +
+      '?subject=' + encodeURIComponent(EMAIL_SUBJECT) +
+      '&body=' + encodeURIComponent(EMAIL_BODY);
+    window.location.href = mailto;
+  });
+
+  bind('linkedin-btn', function () {
+    playAudio('sound-LinkedIn');
+    window.open(LINKEDIN_URL, '_blank');
+  });
+
+  bind('gim-btn', function () {
+    playAudio('sound-GiM');
+    // Alle Videos ausblenden und pausieren
+    const dispenserAnchor = document.getElementById('dispenser-video-anchor');
+    const dispenserVideo = document.getElementById('dispenserVideo');
+    if (dispenserAnchor) {
+      dispenserAnchor.setAttribute('visible', 'false');
+      dispenserAnchor.setAttribute('scale', '0 0 0');
+    }
+    if (dispenserVideo) dispenserVideo.pause();
+
+    const polarAnchor = document.getElementById('inkjet-polar-video-anchor');
+    const polarVideo = document.getElementById('inkjetPolarVideo');
+    if (polarAnchor) {
+      polarAnchor.setAttribute('visible', 'false');
+      polarAnchor.setAttribute('scale', '0 0 0');
+    }
+    if (polarVideo) polarVideo.pause();
+
+    const linearAnchor = document.getElementById('inkjet-linear-video-anchor');
+    const linearVideo = document.getElementById('inkjetLinearVideo');
+    if (linearAnchor) {
+      linearAnchor.setAttribute('visible', 'false');
+      linearAnchor.setAttribute('scale', '0 0 0');
+    }
+    if (linearVideo) linearVideo.pause();
+
+    const designBtn = document.getElementById('ij-design-btn');
+    if (designBtn) {
+      designBtn.setAttribute('visible', 'false');
+      designBtn.setAttribute('scale', '0 0 0');
+    }
+
+    // Flyer an der exakt gleichen Position einblenden
+    const flyer = document.getElementById('flyer-anchor');
+    if (flyer) {
+      flyer.setAttribute('visible', 'true');
+      flyer.emit('showFlyer');
+      setStatus('✓ Tippe auf den Flyer zum Lesen', true);
+    }
+  });
+
+  bind('flyer-anchor', function () {
+    window.open('https://www.futuretrainings.com/wp-content/uploads/UM-GIM-Infoblatt-2025-1.pdf', '_blank');
+  });
+
+  // Erster YouTube-Button (Links): blendet das Inkjet-Linear-Video ein
+  bind('youtube-btn-1', function () {
+    // Alle anderen Videos, Flyer und das 3D-Modell ausblenden
+    const otherAnchor = document.getElementById('inkjet-polar-video-anchor');
+    const otherVideo = document.getElementById('inkjetPolarVideo');
+    if (otherAnchor) {
+      otherAnchor.setAttribute('visible', 'false');
+      otherAnchor.setAttribute('scale', '0 0 0');
+    }
+    if (otherVideo) otherVideo.pause();
+
+    const dispenserAnchor = document.getElementById('dispenser-video-anchor');
+    const dispenserVideo = document.getElementById('dispenserVideo');
+    if (dispenserAnchor) {
+      dispenserAnchor.setAttribute('visible', 'false');
+      dispenserAnchor.setAttribute('scale', '0 0 0');
+    }
+    if (dispenserVideo) dispenserVideo.pause();
+
+    const flyer = document.getElementById('flyer-anchor');
+    if (flyer) {
+      flyer.setAttribute('visible', 'false');
+      flyer.setAttribute('scale', '0 0 0');
+    }
+
+    const designBtn = document.getElementById('ij-design-btn');
+    if (designBtn) {
+      designBtn.setAttribute('visible', 'false');
+      designBtn.setAttribute('scale', '0 0 0');
+    }
+
+    playAudio('sound-animationInkjetLinear');
+    const anchor = document.getElementById('inkjet-linear-video-anchor');
+    const video = document.getElementById('inkjetLinearVideo');
+    if (anchor) {
+      anchor.setAttribute('visible', 'true');
+      anchor.emit('showVideo');
+    }
+    if (video) {
+      video.currentTime = 0;
+      video.play().catch(function () {});
+    }
+    setStatus('✓ 3D-Animation in Dauerschleife', true);
+  });
+
+  // Zweiter YouTube-Button (Mitte): startet Inkjet-Polar-Video
+  bind('youtube-btn-2', function () {
+    const otherAnchor1 = document.getElementById('inkjet-linear-video-anchor');
+    const otherVideo1 = document.getElementById('inkjetLinearVideo');
+    if (otherAnchor1) {
+      otherAnchor1.setAttribute('visible', 'false');
+      otherAnchor1.setAttribute('scale', '0 0 0');
+    }
+    if (otherVideo1) otherVideo1.pause();
+
+    const dispenserAnchor = document.getElementById('dispenser-video-anchor');
+    const dispenserVideo = document.getElementById('dispenserVideo');
+    if (dispenserAnchor) {
+      dispenserAnchor.setAttribute('visible', 'false');
+      dispenserAnchor.setAttribute('scale', '0 0 0');
+    }
+    if (dispenserVideo) dispenserVideo.pause();
+
+    const flyer = document.getElementById('flyer-anchor');
+    if (flyer) {
+      flyer.setAttribute('visible', 'false');
+      flyer.setAttribute('scale', '0 0 0');
+    }
+
+    const designBtn = document.getElementById('ij-design-btn');
+    if (designBtn) {
+      designBtn.setAttribute('visible', 'false');
+      designBtn.setAttribute('scale', '0 0 0');
+    }
+
+    playAudio('sound-animationInkjetPolar');
+    const anchor = document.getElementById('inkjet-polar-video-anchor');
+    const video = document.getElementById('inkjetPolarVideo');
+    if (anchor) {
+      anchor.setAttribute('visible', 'true');
+      anchor.emit('showVideo');
+    }
+    if (video) {
+      video.currentTime = 0;
+      video.play().catch(function () {});
+    }
+    setStatus('✓ 3D-Animation in Dauerschleife', true);
+  });
+
+  // Dritter YouTube-Button (Rechts): blendet das 3D-Modell ein
+  bind('youtube-btn-3', function () {
+    const otherAnchor1 = document.getElementById('inkjet-linear-video-anchor');
+    const otherVideo1 = document.getElementById('inkjetLinearVideo');
+    if (otherAnchor1) {
+      otherAnchor1.setAttribute('visible', 'false');
+      otherAnchor1.setAttribute('scale', '0 0 0');
+    }
+    if (otherVideo1) otherVideo1.pause();
+
+    const otherAnchor2 = document.getElementById('inkjet-polar-video-anchor');
+    const otherVideo2 = document.getElementById('inkjetPolarVideo');
+    if (otherAnchor2) {
+      otherAnchor2.setAttribute('visible', 'false');
+      otherAnchor2.setAttribute('scale', '0 0 0');
+    }
+    if (otherVideo2) otherVideo2.pause();
+
+    const dispenserAnchor = document.getElementById('dispenser-video-anchor');
+    const dispenserVideo = document.getElementById('dispenserVideo');
+    if (dispenserAnchor) {
+      dispenserAnchor.setAttribute('visible', 'false');
+      dispenserAnchor.setAttribute('scale', '0 0 0');
+    }
+    if (dispenserVideo) dispenserVideo.pause();
+
+    const flyer = document.getElementById('flyer-anchor');
+    if (flyer) {
+      flyer.setAttribute('visible', 'false');
+      flyer.setAttribute('scale', '0 0 0');
+    }
+
+    playAudio('sound-modelPrinter');
+    const anchor = document.getElementById('ij-design-btn');
+    if (anchor) {
+      anchor.setAttribute('visible', 'true');
+      anchor.emit('showModel');
+    }
+    setStatus('✓ 3D-Animation in Dauerschleife', true);
+  });
+
+  function handleTap(clientX, clientY) {
+    const canvas = sceneEl.canvas;
+    const camera = sceneEl.camera;
+    if (!canvas || !camera) return;
+    const rect = canvas.getBoundingClientRect();
+    pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+    const intersects = raycaster.intersectObjects(interactiveObjects, true);
+    if (intersects.length > 0) {
+      const firstIntersect = intersects.shift();
+      let hit = firstIntersect.object;
+      while (hit && !hit.userData.tapAction) {
+        hit = hit.parent;
+      }
+      if (hit && hit.userData.tapAction) {
+        hit.userData.tapAction();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  const canvas = sceneEl.canvas;
+  if (!canvas) return;
+
+  canvas.addEventListener('touchend', function (e) {
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      const t = e.changedTouches.item(0);
+      const opened = handleTap(t.clientX, t.clientY);
+      if (opened) e.preventDefault();
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('click', function (e) {
+    handleTap(e.clientX, e.clientY);
+  });
+}
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+<script>
 AFRAME.registerComponent('center-pivot', {
   init: function () {
     this.el.addEventListener('model-loaded', () => {
@@ -793,735 +1206,5 @@ handleTap(e.clientX, e.clientY);
 })();
 </script>
 </body>
-</html>max-width: 95%;
-white-space: nowrap;
-line-height: 1.3;
-pointer-events: none;
-box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-body > video:not([id]) {
-display: block !important;
-position: absolute !important;
-top: 0 !important;
-left: 0 !important;
-width: 100% !important;
-height: 100% !important;
-object-fit: cover !important;
-z-index: 1 !important;
-opacity: 1 !important;
-}
-
-a-scene {
-position: absolute !important;
-top: 0;
-left: 0;
-width: 100% !important;
-height: 100% !important;
-z-index: 2 !important;
-}
-.a-canvas {
-background: transparent !important;
-}
-#scanning-overlay {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-background: rgba(0, 0, 0, 0.55);
-z-index: 20;
-pointer-events: none;
-transition: opacity 0.3s ease;
-}
-#scanning-overlay.hidden {
-opacity: 0 !important;
-visibility: hidden !important;
-display: none !important;
-}
-.scan-frame {
-width: 80vw;
-max-width: 320px;
-aspect-ratio: 1.55 / 1;
-border: 3px solid rgba(255, 255, 255, 0.9);
-border-radius: 14px;
-position: relative;
-overflow: hidden;
-box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
-}
-.scan-frame img {
-position: absolute;
-top: 50%;
-left: 50%;
-width: 100%;
-height: 100%;
-object-fit: cover;
-opacity: 0.42;
-transform: translate(-50%, -50%);
-}
-.scan-text {
-margin-top: 22px;
-color: white;
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-font-size: 16px;
-font-weight: 500;
-text-align: center;
-text-shadow: 0 2px 8px rgba(0,0,0,0.7);
-padding: 0 20px;
-}
-.scan-frame::after {
-content: "";
-position: absolute;
-top: 0;
-left: 0;
-right: 0;
-height: 3px;
-background: linear-gradient(90deg, transparent, #00ff88, transparent);
-animation: scanline 2.2s ease-in-out infinite;
-z-index: 2;
-}
-@keyframes scanline {
-0% { top: 0; opacity: 0; }
-15% { opacity: 1; }
-85% { opacity: 1; }
-100% { top: 100%; opacity: 0; }
-}
-</style>
-</head>
-<body>
-<div id="status">AR Visitenkarte von Heiman Mustafa</div>
-<div id="scanning-overlay">
-<div class="scan-frame">
-<img src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/AR%20BusinessCard_front.png" alt="Visitenkarte">
-</div>
-<div class="scan-text">
-Kamera auf die Visitenkarte richten
-</div>
-</div>
-<a-scene
-mindar-image="imageTargetSrc: https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/targets4.mind; autoStart: true; uiScanning: no; uiLoading: no; filterMinCF: 0.001; filterBeta: 1.0; missTolerance: 8; warmupTolerance: 5;"
-loading-screen="enabled: false"
-color-space="sRGB"
-renderer="colorManagement: true, physicallyCorrectLights"
-vr-mode-ui="enabled: false"
-device-orientation-permission-ui="enabled: false"
-embedded
->
-<a-assets timeout="4000">
-<a-asset-item id="phoneModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Phone.glb"></a-asset-item>
-<a-asset-item id="mailModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Mail.glb"></a-asset-item>
-<a-asset-item id="linkedinModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Linkedin.glb"></a-asset-item>
-<a-asset-item id="youtubeModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/Youtube.glb"></a-asset-item>
-<a-asset-item id="gimModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/GiM.glb"></a-asset-item>
-<a-asset-item id="ijDesignModel" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/IJ_conceptional-design.glb"></a-asset-item>
-
-<video
-id="dispenserVideo"
-src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_dispenser_v001.mp4"
-loop
-muted
-playsinline
-webkit-playsinline="true"
-crossorigin="anonymous"
-preload="auto">
-</video>
-
-<video
-id="extrusionVideo"
-src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/3D-animation_extrusion_v001.mp4"
-loop
-muted
-playsinline
-webkit-playsinline="true"
-crossorigin="anonymous"
-preload="auto">
-</video>
-
-<video
-id="inkjetLinearVideo"
-src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/animationIJlinear.mp4"
-loop
-muted
-playsinline
-webkit-playsinline="true"
-crossorigin="anonymous"
-preload="auto">
-</video>
-
-<video
-id="inkjetPolarVideo"
-src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/animationIJpolar.mp4"
-loop
-muted
-playsinline
-webkit-playsinline="true"
-crossorigin="anonymous"
-preload="auto">
-</video>
-
-<audio id="sound-phone" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/phone.m4a" preload="auto" crossorigin="anonymous"></audio>
-<audio id="sound-mail" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/mail.m4a" preload="auto" crossorigin="anonymous"></audio>
-<audio id="sound-LinkedIn" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/LinkedIn.m4a" preload="auto" crossorigin="anonymous"></audio>
-<audio id="sound-animationDispenser" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/animationDispenser.m4a" preload="auto" crossorigin="anonymous"></audio>
-<audio id="sound-animationExtrusion" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/animationExtrusion.m4a" preload="auto" crossorigin="anonymous"></audio>
-<audio id="sound-animationExtruder" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/animationExtruder.m4a" preload="auto" crossorigin="anonymous"></audio>
-<audio id="sound-animationInkjetLinear" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/animationInkjetLinear.m4a" preload="auto" crossorigin="anonymous"></audio>
-<audio id="sound-animationInkjetPolar" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/animationInkjetPolar.m4a" preload="auto" crossorigin="anonymous"></audio>
-<audio id="sound-modelPrinter" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/modelPrinter.m4a" preload="auto" crossorigin="anonymous"></audio>
-<audio id="sound-phone2" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/phone2.m4a" preload="auto" crossorigin="anonymous"></audio>
-<audio id="sound-GiM" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/audio/GiM.m4a" preload="auto" crossorigin="anonymous"></audio>
-
-<img id="flyerImage" src="https://hm82de.github.io/Gestalter-fuer-immersive-Medien_Portfolio/assets/screenshot_flyerGiM.png" crossorigin="anonymous">
-</a-assets>
-
-<a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-<a-entity id="main-target" mindar-image-target="targetIndex: 0">
-
-<!-- Flyer PNG (screenshot_flyerGiM.png): Liegt anfangs unsichtbar auf derselben Position wie die Videos (mit perfekt bündiger Unterkante und kleinem Luftspalt).
-     Sobald man auf GiM.glb tippt, wird es eingeblendet und steht hochkant (rotation 0 0 0) sowie um 30 Grad nach vorne rotiert. -->
-<a-entity id="flyer-anchor" position="0 0.3635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showFlyer">
-  <a-plane position="0 0.7725 -0.001" rotation="0 0 0" width="1.04" height="1.585" color="#FFFFFF" material="shader: flat"></a-plane>
-  <a-image src="#flyerImage" position="0 0.7725 0" rotation="0 0 0" width="1.0" height="1.545" material="shader: flat; transparent: true"></a-image>
-</a-entity>
-
-
-<!-- Dispenser-Video: Abstand auf y = 0.855 erhoeht, Breite auf 1.0 vergroessert, Hoehe auf 0.56 angepasst. Mit Einblend-Animation (Scale) -->
-<a-entity id="dispenser-video-anchor" position="0 0.3635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
-<!-- Konturrahmen (weiß, leicht groesser und knapp hinter dem Video platziert) -->
-<a-plane position="0 0.28 -0.001" width="1.04" height="0.60" color="#FFFFFF" material="shader: flat"></a-plane>
-<a-video
-src="#dispenserVideo"
-position="0 0.28 0"
-width="1.0"
-height="0.56"
-material="shader: flat; transparent: true">
-</a-video>
-</a-entity>
-
-<!-- Inkjet-Polar-Video: Entlang der oberen hinteren langen Kante (selbe Position wie Dispenser-Video) -->
-<a-entity id="inkjet-polar-video-anchor" position="0 0.3635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
-<!-- Konturrahmen (weiß, leicht groesser und knapp hinter dem Video platziert) -->
-<a-plane position="0 0.28 -0.001" width="1.04" height="0.60" color="#FFFFFF" material="shader: flat"></a-plane>
-<a-video
-src="#inkjetPolarVideo"
-position="0 0.28 0"
-width="1.0"
-height="0.56"
-material="shader: flat; transparent: true">
-</a-video>
-</a-entity>
-
-<!-- Inkjet-Linear-Video: Entlang der oberen hinteren langen Kante (selbe Position wie Dispenser-Video) -->
-<a-entity id="inkjet-linear-video-anchor" position="0 0.3635 0.02" rotation="30 0 0" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showVideo">
-<!-- Konturrahmen (weiß, leicht groesser und knapp hinter dem Video platziert) -->
-<a-plane position="0 0.28 -0.001" width="1.04" height="0.60" color="#FFFFFF" material="shader: flat">
-</a-plane>
-<a-video
-src="#inkjetLinearVideo"
-position="0 0.28 0"
-width="1.0"
-height="0.56"
-material="shader: flat; transparent: true">
-</a-video>
-</a-entity>
-
-<a-entity id="youtube-btn-1" position="-0.35 -0.52 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#youtubeModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-</a-entity>
-
-<a-entity id="youtube-btn-2" position="0 -0.52 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#youtubeModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-</a-entity>
-
-<a-entity id="youtube-btn-3" position="0.35 -0.52 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#youtubeModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-</a-entity>
-
-<a-entity id="phone-btn" position="-0.35 -0.82 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#phoneModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-</a-entity>
-
-<a-entity id="mail-btn" position="0 -0.82 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#mailModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-</a-entity>
-
-<a-entity id="linkedin-btn" position="0.35 -0.82 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#linkedinModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-</a-entity>
-
-<!-- IJ_conceptional-design 3D-Modell: Positioniert hinter der oberen langen Kante (x = 0, y = 0.70, z = -0.05)
-     mit permanenter Drehteller-Rotation um 360 Grad im Uhrzeigersinn um die Tisch-Hochachse.
-     Startet unsichtbar und wird bei Klick auf youtube-btn-3 angezeigt. -->
-<a-entity id="ij-design-btn" position="0 0.70 -0.05" rotation="0 0 -90" visible="false" scale="0 0 0" animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1800; easing: easeOutBack; startEvents: showModel">
-  <a-entity animation="property: rotation; from: 0 0 0; to: 0 0 -360; dur: 8000; easing: linear; loop: true">
-    <a-gltf-model
-      src="#ijDesignModel"
-      scale="0.039375 0.039375 0.039375"
-      rotation="180 90 90"
-      center-pivot>
-    </a-gltf-model>
-  </a-entity>
-</a-entity>
-
-<!-- GiM 3D-Modell: Positioniert ueber dem QR-Code der Visitenkarte im Querformat (x = 0.25, y = 0, z = 0.02). Gleiche Orientierung und Groesse wie die anderen Buttons. -->
-<a-entity id="gim-btn" position="0.25 0 0.02" rotation="0 0 -90">
-<a-gltf-model
-src="#gimModel"
-scale="0.1125 0.1125 0.1125"
-rotation="-90 0 0">
-</a-gltf-model>
-<a-box class="hit-area" scale="0.28 0.32 0.2" material="opacity:0;transparent:true" position="0 0 0"></a-box>
-</a-entity>
-
-</a-entity>
-</a-scene>
-
-<script>
-(function () {
-if (window.__arVisitenkarteInitialized) return;
-window.__arVisitenkarteInitialized = true;
-
-const statusEl = document.getElementById('status');
-const scanningOverlay = document.getElementById('scanning-overlay');
-
-// ---- HIER ANPASSEN: eigene Kontaktdaten ----
-const PHONE_NUMBER = '+4917641996982';
-const EMAIL_ADDRESS = 'heiman.mustafa@futuristen.education';
-const EMAIL_SUBJECT = 'Praktikum als Gestalter für immersive Medien';
-const EMAIL_BODY = 'Sehr geehrter Herr Mustafa,\\n\\n bitte melden Sie sich bei uns, damit wir uns für einen Termin absprechen können.';
-const LINKEDIN_URL = 'https://www.linkedin.com/in/heiman-mustafa';
-
-
-// ---------------------------------------------
-
-function setStatus(text, isSuccess) {
-if (!statusEl) return;
-statusEl.textContent = text;
-statusEl.style.background = isSuccess
-? 'rgba(0, 140, 0, 0.88)'
-: 'rgba(0, 0, 0, 0.78)';
-}
-
-function hideScanning() {
-if (scanningOverlay) scanningOverlay.classList.add('hidden');
-}
-
-function showScanning() {
-if (scanningOverlay) scanningOverlay.classList.remove('hidden');
-}
-
-setStatus('AR Visitenkarte von Heiman Mustafa');
-showScanning();
-
-const sceneEl = document.querySelector('a-scene');
-if (!sceneEl) return;
-
-let scriptInitialized = false;
-
-function initAR() {
-if (scriptInitialized) return;
-scriptInitialized = true;
-
-setStatus('AR Visitenkarte von Heiman Mustafa');
-showScanning();
-setupTapInteraction();
-setupTargetEvents();
-}
-
-if (sceneEl.hasLoaded) {
-initAR();
-} else {
-sceneEl.addEventListener('loaded', initAR);
-}
-
-// Ultimatives Sicherheitsnetz: Initialisiere AR nach 3 Sekunden, falls die Scene-Events blockiert sind
-setTimeout(function () {
-initAR();
-}, 3000);
-
-function setupTargetEvents() {
-const target = document.getElementById('main-target');
-if (target) {
-target.addEventListener('targetFound', function () {
-setStatus('✓ Visitenkarte von Heiman Mustafa erkannt', true);
-hideScanning();
-});
-target.addEventListener('targetLost', function () {
-setStatus('AR Visitenkarte von Heiman Mustafa');
-showScanning();
-});
-}
-
-// AR-System Event Listeners für Feedback zum Ladezustand und Fehlerbehandlung
-sceneEl.addEventListener('arReady', function () {
-setStatus('✓ AR bereit! Bitte Kamera auf die Visitenkarte richten.', true);
-});
-
-sceneEl.addEventListener('arError', function (e) {
-setStatus('Kamera-Fehler: Bitte Kamera-Zugriff erlauben und Seite neu laden!', false);
-if (statusEl) statusEl.style.background = 'darkred';
-});
-
-// ---- VIDEO DIAGNOSTICS FOR HEIMAN ----
-const videosToWatch = ['dispenserVideo', 'extrusionVideo', 'inkjetLinearVideo', 'inkjetPolarVideo'];
-videosToWatch.forEach(function(id) {
-  const v = document.getElementById(id);
-  if (v) {
-    v.addEventListener('error', function() {
-      const err = v.error;
-      let errMsg = "Unbekannter Fehler";
-      if (err) {
-        if (err.code === 1) errMsg = "Abgebrochen (1)";
-        else if (err.code === 2) errMsg = "Netzwerkfehler (2)";
-        else if (err.code === 3) errMsg = "Decodierfehler (3)";
-        else if (err.code === 4) errMsg = "Datei nicht gefunden oder Format ungueltig (404)";
-      }
-      setStatus("Video-Fehler (" + id + "): " + errMsg, false);
-      if (statusEl) statusEl.style.background = 'darkred';
-    });
-  }
-});
-}
-
-window.addEventListener('error', function (e) {
-setStatus('Fehler: ' + (e.message || 'Unbekannt'));
-if (statusEl) statusEl.style.background = 'darkred';
-});
-
-setTimeout(function () {
-const cameraVideo = document.querySelector('body > video:not([id])');
-if (cameraVideo) {
-cameraVideo.style.display = 'block';
-cameraVideo.style.opacity = '1';
-cameraVideo.style.zIndex = '1';
-}
-}, 1000);
-
-// -----------------------------------------------------------------
-// Direktes Tap-Handling auf 3D-Objekte (statt A-Frame cursor).
-// -----------------------------------------------------------------
-function setupTapInteraction() {
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
-const interactiveObjects = new Array();
-
-function playAudio(audioId) {
-const sound = document.getElementById(audioId);
-if (sound) {
-sound.currentTime = 0;
-sound.play().catch(function (e) {});
-}
-}
-
-function triggerHaptic(id) {
-// 1. Physische Vibration (fuer Android-Geraete)
-if (navigator.vibrate) {
-navigator.vibrate(40);
-}
-
-// 2. Visuelle "haptische" Rueckmeldung (Pulsieren/Stauchen)
-const el = document.getElementById(id);
-if (el) {
-// Schnell verkleinern
-el.setAttribute('animation__haptic', {
-property: 'scale',
-to: '0.8 0.8 0.8',
-dur: 80,
-easing: 'easeOutQuad'
-});
-
-// Weich zurueckfedern auf Originalgroeße
-setTimeout(function () {
-el.setAttribute('animation__haptic', {
-property: 'scale',
-to: '1 1 1',
-dur: 150,
-easing: 'easeOutBack'
-});
-}, 80);
-}
-}
-
-function bind(id, action) {
-const el = document.getElementById(id);
-if (!el) return;
-el.object3D.userData.tapAction = function () {
-triggerHaptic(id);
-action();
-};
-interactiveObjects.push(el.object3D);
-}
-
-bind('phone-btn', function () {
-playAudio('sound-phone');
-window.location.href = 'tel:' + PHONE_NUMBER;
-});
-
-bind('mail-btn', function () {
-playAudio('sound-mail');
-const mailto = 'mailto:' + encodeURIComponent(EMAIL_ADDRESS) +
-'?subject=' + encodeURIComponent(EMAIL_SUBJECT) +
-'&body=' + encodeURIComponent(EMAIL_BODY);
-window.location.href = mailto;
-});
-
-bind('linkedin-btn', function () {
-playAudio('sound-LinkedIn');
-window.open(LINKEDIN_URL, '_blank');
-});
-
-bind('gim-btn', function () {
-  playAudio('sound-GiM');
-  // Alle Videos ausblenden und pausieren
-  const dispenserAnchor = document.getElementById('dispenser-video-anchor');
-  const dispenserVideo = document.getElementById('dispenserVideo');
-  if (dispenserAnchor) {
-    dispenserAnchor.setAttribute('visible', 'false');
-    dispenserAnchor.setAttribute('scale', '0 0 0');
-  }
-  if (dispenserVideo) dispenserVideo.pause();
-
-  const polarAnchor = document.getElementById('inkjet-polar-video-anchor');
-  const polarVideo = document.getElementById('inkjetPolarVideo');
-  if (polarAnchor) {
-    polarAnchor.setAttribute('visible', 'false');
-    polarAnchor.setAttribute('scale', '0 0 0');
-  }
-  if (polarVideo) polarVideo.pause();
-
-  const linearAnchor = document.getElementById('inkjet-linear-video-anchor');
-  const linearVideo = document.getElementById('inkjetLinearVideo');
-  if (linearAnchor) {
-    linearAnchor.setAttribute('visible', 'false');
-    linearAnchor.setAttribute('scale', '0 0 0');
-  }
-  if (linearVideo) linearVideo.pause();
-
-  const designBtn = document.getElementById('ij-design-btn');
-  if (designBtn) {
-    designBtn.setAttribute('visible', 'false');
-    designBtn.setAttribute('scale', '0 0 0');
-  }
-
-  // Flyer an der exakt gleichen Position einblenden
-  const flyer = document.getElementById('flyer-anchor');
-  if (flyer) {
-    flyer.setAttribute('visible', 'true');
-    flyer.emit('showFlyer');
-    setStatus('✓ Tippe auf den Flyer zum Lesen', true);
-  }
-});
-
-bind('flyer-anchor', function () {
-  window.open('https://www.futuretrainings.com/wp-content/uploads/UM-GIM-Infoblatt-2025-1.pdf', '_blank');
-});
-
-// Erster YouTube-Button (Links): blendet das Inkjet-Linear-Video ein (spielt animationInkjetLinear.m4a)
-bind('youtube-btn-1', function () {
-
-// Alle anderen Videos, Flyer und das 3D-Modell ausblenden
-const otherAnchor = document.getElementById('inkjet-polar-video-anchor');
-const otherVideo = document.getElementById('inkjetPolarVideo');
-if (otherAnchor) {
-otherAnchor.setAttribute('visible', 'false');
-otherAnchor.setAttribute('scale', '0 0 0');
-}
-if (otherVideo) otherVideo.pause();
-
-const dispenserAnchor = document.getElementById('dispenser-video-anchor');
-const dispenserVideo = document.getElementById('dispenserVideo');
-if (dispenserAnchor) {
-dispenserAnchor.setAttribute('visible', 'false');
-dispenserAnchor.setAttribute('scale', '0 0 0');
-}
-if (dispenserVideo) dispenserVideo.pause();
-
-const flyer = document.getElementById('flyer-anchor');
-if (flyer) {
-  flyer.setAttribute('visible', 'false');
-  flyer.setAttribute('scale', '0 0 0');
-}
-
-const designBtn = document.getElementById('ij-design-btn');
-if (designBtn) {
-  designBtn.setAttribute('visible', 'false');
-  designBtn.setAttribute('scale', '0 0 0');
-}
-
-playAudio('sound-animationInkjetLinear');
-const anchor = document.getElementById('inkjet-linear-video-anchor');
-const video = document.getElementById('inkjetLinearVideo');
-if (anchor) {
-anchor.setAttribute('visible', 'true');
-anchor.emit('showVideo');
-}
-if (video) {
-video.currentTime = 0;
-video.play().catch(function () {});
-}
-setStatus('✓ 3D-Animation in Dauerschleife', true);
-});
-
-// Zweiter YouTube-Button (Mitte): startet Inkjet-Polar-Video (spielt animationInkjetPolar.m4a)
-bind('youtube-btn-2', function () {
-
-const otherAnchor1 = document.getElementById('inkjet-linear-video-anchor');
-const otherVideo1 = document.getElementById('inkjetLinearVideo');
-if (otherAnchor1) {
-otherAnchor1.setAttribute('visible', 'false');
-otherAnchor1.setAttribute('scale', '0 0 0');
-}
-if (otherVideo1) otherVideo1.pause();
-
-const dispenserAnchor = document.getElementById('dispenser-video-anchor');
-const dispenserVideo = document.getElementById('dispenserVideo');
-if (dispenserAnchor) {
-dispenserAnchor.setAttribute('visible', 'false');
-dispenserAnchor.setAttribute('scale', '0 0 0');
-}
-if (dispenserVideo) dispenserVideo.pause();
-
-const flyer = document.getElementById('flyer-anchor');
-if (flyer) {
-  flyer.setAttribute('visible', 'false');
-  flyer.setAttribute('scale', '0 0 0');
-}
-
-const designBtn = document.getElementById('ij-design-btn');
-if (designBtn) {
-  designBtn.setAttribute('visible', 'false');
-  designBtn.setAttribute('scale', '0 0 0');
-}
-
-playAudio('sound-animationInkjetPolar');
-const anchor = document.getElementById('inkjet-polar-video-anchor');
-const video = document.getElementById('inkjetPolarVideo');
-if (anchor) {
-anchor.setAttribute('visible', 'true');
-anchor.emit('showVideo');
-}
-if (video) {
-video.currentTime = 0;
-video.play().catch(function () {});
-}
-setStatus('✓ 3D-Animation in Dauerschleife', true);
-});
-
-// Dritter YouTube-Button (Rechts): blendet das 3D-Modell IJ_conceptional-design.glb ein (spielt modelPrinter.m4a)
-bind('youtube-btn-3', function () {
-
-const otherAnchor1 = document.getElementById('inkjet-linear-video-anchor');
-const otherVideo1 = document.getElementById('inkjetLinearVideo');
-if (otherAnchor1) {
-otherAnchor1.setAttribute('visible', 'false');
-otherAnchor1.setAttribute('scale', '0 0 0');
-}
-if (otherVideo1) otherVideo1.pause();
-
-const otherAnchor2 = document.getElementById('inkjet-polar-video-anchor');
-const otherVideo2 = document.getElementById('inkjetPolarVideo');
-if (otherAnchor2) {
-otherAnchor2.setAttribute('visible', 'false');
-otherAnchor2.setAttribute('scale', '0 0 0');
-}
-if (otherVideo2) otherVideo2.pause();
-
-const dispenserAnchor = document.getElementById('dispenser-video-anchor');
-const dispenserVideo = document.getElementById('dispenserVideo');
-if (dispenserAnchor) {
-dispenserAnchor.setAttribute('visible', 'false');
-dispenserAnchor.setAttribute('scale', '0 0 0');
-}
-if (dispenserVideo) dispenserVideo.pause();
-
-const flyer = document.getElementById('flyer-anchor');
-if (flyer) {
-  flyer.setAttribute('visible', 'false');
-  flyer.setAttribute('scale', '0 0 0');
-}
-
-playAudio('sound-modelPrinter');
-const anchor = document.getElementById('ij-design-btn');
-if (anchor) {
-anchor.setAttribute('visible', 'true');
-anchor.emit('showModel');
-}
-setStatus('✓ 3D-Animation in Dauerschleife', true);
-});
-
-function handleTap(clientX, clientY) {
-const canvas = sceneEl.canvas;
-const camera = sceneEl.camera;
-if (!canvas || !camera) return;
-const rect = canvas.getBoundingClientRect();
-pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-raycaster.setFromCamera(pointer, camera);
-const intersects = raycaster.intersectObjects(interactiveObjects, true);
-if (intersects.length > 0) {
-const firstIntersect = intersects.shift();
-let hit = firstIntersect.object;
-while (hit && !hit.userData.tapAction) {
-hit = hit.parent;
-}
-if (hit && hit.userData.tapAction) {
-hit.userData.tapAction();
-return true;
-}
-}
-return false;
-}
-
-const canvas = sceneEl.canvas;
-if (!canvas) return;
-
-canvas.addEventListener('touchend', function (e) {
-if (e.changedTouches && e.changedTouches.length > 0) {
-const t = e.changedTouches.item(0);
-const opened = handleTap(t.clientX, t.clientY);
-if (opened) e.preventDefault();
-}
-}, { passive: false });
-
-canvas.addEventListener('click', function (e) {
-handleTap(e.clientX, e.clientY);
-});
-}
-})();
-</script>
-</body>
 </html>
+Gemini Notebook kann fehlerhafte Informationen ausgeben. Bitte überprüfen Sie die Antworten.
